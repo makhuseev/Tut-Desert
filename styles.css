@@ -5,6 +5,58 @@
   place-items:center;
   font-size:72px;
   overflow:hidden;
+  cursor:pointer;
+}
+
+.product-art img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  padding:10px;
+}
+
+/* Увеличенное фото */
+.photo-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  background:rgba(30,20,15,.88);
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+}
+
+.photo-modal.open{
+  display:flex;
+}
+
+.photo-modal img{
+  max-width:92vw;
+  max-height:90vh;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  border-radius:12px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+.photo-modal-close{
+  position:absolute;
+  top:20px;
+  right:25px;
+  width:46px;
+  height:46px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#68483b;
+  font-size:30px;
+  line-height:1;
+  cursor:pointer;
+}
+  overflow:hidden;
 }
 
 .product-art img{
