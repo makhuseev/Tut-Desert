@@ -44,7 +44,15 @@ function applySiteSettings(){
   const mapEl=document.getElementById("siteMap"); if(mapEl){mapEl.href=s.map_url||DEFAULT_SITE_SETTINGS.map_url;}
   const hoursEl=document.getElementById("siteHours"); if(hoursEl) hoursEl.textContent=s.hours||DEFAULT_SITE_SETTINGS.hours;
   const waButtons=document.querySelectorAll("[data-whatsapp]"); waButtons.forEach(a=>{const num=s.whatsapp||DEFAULT_SITE_SETTINGS.whatsapp; const msg=a.dataset.whatsappMessage||"Здравствуйте! Хочу сделать заказ в Tut Dessert."; a.href="https://wa.me/"+num+"?text="+encodeURIComponent(msg);});
-  const logoLinks=document.querySelectorAll(".logo"); if(s.logo_url){logoLinks.forEach(a=>{a.innerHTML=`<img src="${escHtml(s.logo_url)}" alt="Tut Dessert" style="max-height:42px;width:auto;object-fit:contain;">`;});}
+  const instagramEl=document.getElementById("siteInstagram");
+if(instagramEl){
+  if(s.instagram_url){
+    instagramEl.href=s.instagram_url;
+    instagramEl.style.display="inline";
+  }else{
+    instagramEl.style.display="none";
+  }
+}const logoLinks=document.querySelectorAll(".logo"); if(s.logo_url){logoLinks.forEach(a=>{a.innerHTML=`<img src="${escHtml(s.logo_url)}" alt="Tut Dessert" style="max-height:42px;width:auto;object-fit:contain;">`;});}
 }
 async function loadSiteSettings(){
   if(!supabaseClient){applySiteSettings();return;}
