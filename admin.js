@@ -9,22 +9,6 @@ const supabaseClient = (window.supabase && window.supabase.createClient)
   : null;
 
 const DEFAULTS = [
-const SUPABASE_URL = "https://tsemlertlvhgnfvtdnjq.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_I8XmDXRwwcQHhLKXCr25iw_jWbaOS8l";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
-);
-
-
 const ADMIN_EMAIL="makhuseev0103@gmail.com";
 const IMAGE_BUCKET="product-images";
 let data=[];
