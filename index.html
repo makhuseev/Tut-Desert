@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Tut Dessert — домашняя кондитерская. Торты, пироги и пирожные на заказ.">
+<title>Tut Dessert — домашняя кондитерская</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="logo" href="#top">Tut <em>Dessert</em></a>
+  <nav class="desktop-nav"><a href="#menu">Меню</a><a href="#offers">Акции</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a></nav>
+  <button class="cart-button" id="openCart" aria-label="Открыть корзину">Корзина <span id="cartCount">0</span></button>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Домашняя кондитерская</p>
+    <h1>Сладкие моменты,<br><i>созданные с любовью</i></h1>
+    <p class="hero-text">Нежные торты, ароматные пироги и маленькие радости к вашему столу.</p>
+    <div class="hero-actions"><a class="btn primary" href="#menu">Смотреть меню</a><a class="text-link" href="#contacts">Как заказать →</a></div>
+    <div class="hero-note">Свежая выпечка · На заказ · С заботой о вас</div>
+  </div>
+  <div class="hero-art" aria-label="Декоративная иллюстрация десерта"><div class="cake-illustration"><span>✦</span><strong>Tut<br>Dessert</strong><small>made with love</small></div></div>
+</section>
+
+<section class="section" id="menu">
+  <div class="section-heading"><div><p class="eyebrow">Наш ассортимент</p><h2>Выберите любимый десерт</h2></div><div class="filters" id="filters"></div></div>
+  <div class="product-grid" id="productGrid"></div>
+</section>
+
+<section class="promo-section" id="offers">
+  <div><p class="eyebrow">Для особенных случаев</p><h2>Сделаем ваш праздник<br>ещё слаще</h2><p>Расскажите нам о вашем событии — поможем подобрать десерт и оформление.</p><a class="btn primary" href="https://wa.me/77472260976?text=Здравствуйте!%20Хочу%20обсудить%20заказ." target="_blank" rel="noopener">Обсудить заказ</a></div>
+  <div class="promo-badge"><span>✿</span><b>С любовью<br>к каждому<br>кусочку</b></div>
+</section>
+
+<section class="section reviews" id="reviews">
+  <p class="eyebrow">Ваши слова</p><h2>Отзывы клиентов</h2>
+  <div class="review-grid">
+    <article><div class="stars">★★★★★</div><p>«Очень нежный торт, всё было красиво и вкусно. Обязательно закажем ещё!»</p><b>— Наш клиент</b></article>
+    <article><div class="stars">★★★★★</div><p>«Понравилось абсолютно всё: вкус, упаковка и внимание к деталям.»</p><b>— Наш клиент</b></article>
+    <article><div class="stars">★★★★★</div><p>«Домашний вкус и аккуратное оформление. Спасибо Tut Dessert!»</p><b>— Наш клиент</b></article>
+  </div>
+</section>
+
+<section class="contact-section" id="contacts">
+  <div><p class="eyebrow">Будем рады вам</p><h2>Закажите свой десерт</h2><p>Напишите нам в WhatsApp, чтобы уточнить наличие, дату и детали заказа.</p><a class="btn primary" href="https://wa.me/77472260976?text=Здравствуйте!%20Хочу%20сделать%20заказ%20в%20Tut%20Dessert." target="_blank" rel="noopener">Написать в WhatsApp</a></div>
+  <div class="contact-card"><h3>Контакты</h3><p><b>WhatsApp:</b><br><a href="https://wa.me/77472260976" target="_blank" rel="noopener">+7 747 226 09 76</a></p><p><b>Адрес</b><br>Уточняется — добавьте адрес в настройках сайта.</p><a class="map-link" href="https://maps.google.com" target="_blank" rel="noopener">Открыть карту ↗</a></div>
+</section>
+</main>
+
+<footer><a class="logo" href="#top">Tut <em>Dessert</em></a><p>Домашняя кондитерская с любовью к деталям.</p><a href="admin.html" class="admin-footer">Вход для администратора</a></footer>
+
+<div class="cart-drawer" id="cartDrawer" aria-hidden="true">
+  <div class="cart-overlay" id="closeCart"></div><aside class="cart-panel"><div class="cart-head"><h2>Ваша корзина</h2><button id="closeCartButton" class="icon-button">×</button></div><div id="cartItems"></div><div class="cart-bottom"><div class="cart-total">Итого: <strong id="cartTotal">0 ₸</strong></div><button class="btn primary full" id="orderCart">Заказать в WhatsApp</button><button class="btn secondary full" id="clearCart">Очистить корзину</button></div></aside>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
