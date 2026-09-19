@@ -143,6 +143,17 @@ async function boot(){
   try{await loadData();await loadSettings();if(!data.length)setStatus("Таблица пуста. Нажми «Загрузить исходный каталог». ");}
   catch(e){setStatus(e.message||"Не удалось загрузить данные.","error")}
 }
-$("login").onclick=login;$("password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});$("logout").onclick=logout;$("seed").onclick=seed;$("save").onclick=save;$("saveSettings").onclick=saveSettings;
+if($("login")) $("login").onclick=login;
+if($("password")) $("password").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+if($("logout")) $("logout").onclick=logout;
+if($("seed")) $("seed").onclick=seed;
+if($("save")) $("save").onclick=save;
+if($("saveSettings")) $("saveSettings").onclick=saveSettings;
+
+if(supabaseClient){
+  supabaseClient.auth.onAuthStateChange(()=>{});
+}
+
+boot();
 if(supabaseClient)supabaseClient.auth.onAuthStateChange(()=>{});
 boot();
