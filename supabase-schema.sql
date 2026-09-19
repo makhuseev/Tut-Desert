@@ -1,6 +1,3 @@
--- Tut Dessert: базовая структура Supabase
--- Выполните этот SQL в Supabase SQL Editor после создания проекта.
-
 create table if not exists public.products (
   id text primary key,
   name text not null,
@@ -18,10 +15,61 @@ create table if not exists public.products (
 
 alter table public.products enable row level security;
 
--- Публичное чтение активных товаров:
+grant select on public.products to anon, authenticated;
+grant insert, update, delete on public.products to authenticated;
+
+drop policy if exists "Public can read active products" on public.products;
+drop policy if exists "Only Tut Dessert admin can read products" on public.products;
+drop policy if exists "Only Tut Dessert admin can insert" on public.products;
+drop policy if exists "Only Tut Dessert admin can update" on public.products;
+drop policy if exists "Only Tut Dessert admin can delete" on public.products;
+drop policy if exists "Admins can insert products" on public.products;
+drop policy if exists "Admins can update products" on public.products;
+drop policy if exists "Admins can delete products" on public.products;
+
 create policy "Public can read active products"
-on public.products for select
+on public.products
+for select
+to anon, authenticated
 using (is_active = true);
 
--- ВАЖНО: политики на INSERT/UPDATE/DELETE добавляйте только после настройки
--- Supabase Auth и проверки роли администратора. Не открывайте запись всем.
+create policy "Only Tut Dessert admin can read products"
+on public.products
+for select
+to authenticated
+using ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+create policy "Only Tut Dessert admin can insert"
+on public.products
+for insert
+to authenticated
+with check ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+create policy "Only Tut Dessert admin can update"
+on public.products
+for update
+to authenticated
+using ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+create policy "Only Tut Dessert admin can delete"
+on public.products
+for delete
+to authenticated
+using ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+-- Keep updated_at current when rows are edited.
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists products_set_updated_at on public.products;
+create trigger products_set_updated_at
+before update on public.products
+for each row execute function public.set_updated_at();
