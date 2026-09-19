@@ -22,3 +22,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_...";
 ## GitHub Pages
 
 Сайт рассчитан на публикацию из ветки `main`, корень `/(root)`.
+
+
+### Настройки сайта
+Адрес, телефон, WhatsApp, часы работы, ссылка 2ГИС и ссылки на логотип/Instagram теперь редактируются в админ-панели. Для этого один раз выполните обновлённый `supabase-schema.sql` в Supabase SQL Editor.

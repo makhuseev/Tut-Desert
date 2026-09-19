@@ -34,6 +34,25 @@ let PRODUCT_SOURCE = PRODUCTS;
 
 const money=v=>typeof v==="number"?v.toLocaleString("ru-RU")+" ₸":String(v||"").replace(/\B(?=(\d{3})+(?!\d))/g," ")+" ₸";
 const products=()=>PRODUCT_SOURCE;
+const DEFAULT_SITE_SETTINGS = {address:"Tut Dessert, г. Тараз",phone:"+7 747 226 09 76",whatsapp:"77472260976",hours:"Уточняется",map_url:"https://go.2gis.com/4yEZN",logo_url:"",instagram_url:""};
+let SITE_SETTINGS = {...DEFAULT_SITE_SETTINGS};
+const escHtml=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+function applySiteSettings(){
+  const s=SITE_SETTINGS;
+  const addressEl=document.getElementById("siteAddress"); if(addressEl) addressEl.textContent=s.address||DEFAULT_SITE_SETTINGS.address;
+  const phoneEl=document.getElementById("sitePhone"); if(phoneEl){phoneEl.textContent=s.phone||DEFAULT_SITE_SETTINGS.phone; phoneEl.href="https://wa.me/"+(s.whatsapp||DEFAULT_SITE_SETTINGS.whatsapp);}
+  const mapEl=document.getElementById("siteMap"); if(mapEl){mapEl.href=s.map_url||DEFAULT_SITE_SETTINGS.map_url;}
+  const hoursEl=document.getElementById("siteHours"); if(hoursEl) hoursEl.textContent=s.hours||DEFAULT_SITE_SETTINGS.hours;
+  const waButtons=document.querySelectorAll("[data-whatsapp]"); waButtons.forEach(a=>{const num=s.whatsapp||DEFAULT_SITE_SETTINGS.whatsapp; const msg=a.dataset.whatsappMessage||"Здравствуйте! Хочу сделать заказ в Tut Dessert."; a.href="https://wa.me/"+num+"?text="+encodeURIComponent(msg);});
+  const logoLinks=document.querySelectorAll(".logo"); if(s.logo_url){logoLinks.forEach(a=>{a.innerHTML=`<img src="${escHtml(s.logo_url)}" alt="Tut Dessert" style="max-height:42px;width:auto;object-fit:contain;">`;});}
+}
+async function loadSiteSettings(){
+  if(!supabaseClient){applySiteSettings();return;}
+  const {data,error}=await supabaseClient.from("site_settings").select("*").eq("id",1).maybeSingle();
+  if(!error && data) SITE_SETTINGS={...DEFAULT_SITE_SETTINGS,...data};
+  applySiteSettings();
+}
+
 
 async function loadProducts(){
   if(!supabaseClient){ PRODUCT_SOURCE=PRODUCTS; return; }
@@ -55,6 +74,6 @@ function openCart(){document.getElementById("cartDrawer").classList.add("open");
 function closeCart(){document.getElementById("cartDrawer").classList.remove("open");document.getElementById("cartDrawer").setAttribute("aria-hidden","true")}
 document.getElementById("openCart").onclick=openCart;document.getElementById("closeCart").onclick=closeCart;document.getElementById("closeCartButton").onclick=closeCart;
 document.getElementById("clearCart").onclick=()=>{cart=[];saveCart();renderCart()};
-document.getElementById("orderCart").onclick=()=>{const all=products();const text=cart.map(i=>{const p=all.find(x=>x.id===i.id);return `${p.name} — ${i.qty} шт.`}).join("\n");if(!text)return alert("Добавьте товары в корзину.");window.open("https://wa.me/77472260976?text="+encodeURIComponent("Здравствуйте! Хочу сделать заказ в Tut Dessert:\n"+text+"\n\nПодскажите, пожалуйста, итоговую стоимость."),"_blank")};
+document.getElementById("orderCart").onclick=()=>{const all=products();const text=cart.map(i=>{const p=all.find(x=>x.id===i.id);return `${p.name} — ${i.qty} шт.`}).join("\n");if(!text)return alert("Добавьте товары в корзину.");const num=SITE_SETTINGS.whatsapp||DEFAULT_SITE_SETTINGS.whatsapp;window.open("https://wa.me/"+num+"?text="+encodeURIComponent("Здравствуйте! Хочу сделать заказ в Tut Dessert:\n"+text+"\n\nПодскажите, пожалуйста, итоговую стоимость."),"_blank")};
 
-(async()=>{await loadProducts();renderFilters();renderProducts();renderCartCount();})();
+(async()=>{await Promise.all([loadProducts(),loadSiteSettings()]);renderFilters();renderProducts();renderCartCount();})();

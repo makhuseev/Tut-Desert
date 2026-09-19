@@ -73,3 +73,56 @@ drop trigger if exists products_set_updated_at on public.products;
 create trigger products_set_updated_at
 before update on public.products
 for each row execute function public.set_updated_at();
+
+
+-- Site settings: one row for public contact information and branding.
+create table if not exists public.site_settings (
+  id integer primary key default 1 check (id = 1),
+  address text not null default 'Tut Dessert, г. Тараз',
+  phone text not null default '+7 747 226 09 76',
+  whatsapp text not null default '77472260976',
+  hours text not null default 'Уточняется',
+  map_url text not null default 'https://go.2gis.com/4yEZN',
+  logo_url text,
+  instagram_url text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_settings enable row level security;
+grant select on public.site_settings to anon, authenticated;
+grant insert, update on public.site_settings to authenticated;
+
+drop policy if exists "Public can read site settings" on public.site_settings;
+drop policy if exists "Only Tut Dessert admin can read site settings" on public.site_settings;
+drop policy if exists "Only Tut Dessert admin can insert site settings" on public.site_settings;
+drop policy if exists "Only Tut Dessert admin can update site settings" on public.site_settings;
+
+create policy "Public can read site settings"
+on public.site_settings
+for select
+using (true);
+
+create policy "Only Tut Dessert admin can read site settings"
+on public.site_settings
+for select to authenticated
+using ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+create policy "Only Tut Dessert admin can insert site settings"
+on public.site_settings
+for insert to authenticated
+with check ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+create policy "Only Tut Dessert admin can update site settings"
+on public.site_settings
+for update to authenticated
+using ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'makhuseev0103@gmail.com');
+
+insert into public.site_settings (id, address, phone, whatsapp, hours, map_url)
+values (1, 'Tut Dessert, г. Тараз', '+7 747 226 09 76', '77472260976', 'Уточняется', 'https://go.2gis.com/4yEZN')
+on conflict (id) do nothing;
+
+drop trigger if exists site_settings_set_updated_at on public.site_settings;
+create trigger site_settings_set_updated_at
+before update on public.site_settings
+for each row execute function public.set_updated_at();

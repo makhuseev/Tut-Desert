@@ -29,21 +29,28 @@ const DEFAULTS = [
 ];
 
 const ADMIN_EMAIL = "makhuseev0103@gmail.com";
+const DEFAULT_SETTINGS = {
+  address: "Tut Dessert, г. Тараз",
+  phone: "+7 747 226 09 76",
+  whatsapp: "77472260976",
+  hours: "Уточняется",
+  map_url: "https://go.2gis.com/4yEZN",
+  logo_url: "",
+  instagram_url: ""
+};
 let data=[];
+let settings={...DEFAULT_SETTINGS};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 const priceValue=p=>p.price===null||p.price===undefined?"":p.price;
-
 function show(id,visible=true){$(id).classList.toggle("hidden",!visible)}
-function setStatus(message,type="info"){$("status").textContent=message;$ ("status").className=`status ${type}`}
-
+function setStatus(message,type="info"){$("status").textContent=message;$("status").className=`status ${type}`}
 async function getSession(){
   if(!supabaseClient){show("configWarning",true);show("loginCard",false);return null;}
   const {data,error}=await supabaseClient.auth.getSession();
   if(error){setStatus(error.message,"error");return null;}
   return data.session;
 }
-
 async function login(){
   const email=$("email").value.trim(); const password=$("password").value;
   if(!email||!password){setStatus("Введите email и пароль.","error");return;}
@@ -52,25 +59,31 @@ async function login(){
   if(error){setStatus(error.message,"error");return;}
   await boot();
 }
-
 async function logout(){await supabaseClient.auth.signOut();location.reload()}
-
 async function loadData(){
   const {data:rows,error}=await supabaseClient.from("products").select("*").order("created_at",{ascending:true});
-  if(error)throw error;
-  data=rows||[];
-  render();
+  if(error)throw error; data=rows||[]; render();
 }
-
+async function loadSettings(){
+  const {data:row,error}=await supabaseClient.from("site_settings").select("*").eq("id",1).maybeSingle();
+  if(error) throw error;
+  settings={...DEFAULT_SETTINGS,...(row||{})};
+  $("address").value=settings.address||"";
+  $("phone").value=settings.phone||"";
+  $("whatsapp").value=settings.whatsapp||"";
+  $("hours").value=settings.hours||"";
+  $("map_url").value=settings.map_url||"";
+  $("logo_url").value=settings.logo_url||"";
+  $("instagram_url").value=settings.instagram_url||"";
+}
 async function seed(){
   if(!confirm("Загрузить в Supabase исходный каталог из сайта? Существующие товары с теми же ID будут обновлены."))return;
   setStatus("Загружаем каталог…");
   const payload=DEFAULTS.map(p=>({id:p.id,name:p.name,category:p.category,price:p.price,price_label:p.price_label,unit:p.unit,description:p.desc,emoji:p.emoji,image_url:null,is_active:true}));
   const {error}=await supabaseClient.from("products").upsert(payload,{onConflict:"id"});
   if(error){setStatus(error.message,"error");return;}
-  await loadData(); setStatus("Каталог загружен. Теперь цены можно менять.","success");
+  await loadData(); setStatus("Каталог загружен. Теперь цены и настройки можно менять.","success");
 }
-
 function render(){
   $("rows").innerHTML=data.map((p,i)=>`<div class="admin-row">
     <input data-field="name" data-i="${i}" value="${esc(p.name)}">
@@ -80,7 +93,18 @@ function render(){
     <label class="switch"><input type="checkbox" data-field="active" data-i="${i}" ${p.is_active?"checked":""}><span>Активен</span></label>
   </div>`).join("");
 }
-
+function readSettings(){
+  return {
+    id:1,
+    address:$("address").value.trim(),
+    phone:$("phone").value.trim(),
+    whatsapp:$("whatsapp").value.trim().replace(/[^0-9]/g,""),
+    hours:$("hours").value.trim(),
+    map_url:$("map_url").value.trim(),
+    logo_url:$("logo_url").value.trim(),
+    instagram_url:$("instagram_url").value.trim()
+  };
+}
 async function save(){
   setStatus("Сохраняем изменения…");
   const updates=data.map((p,i)=>{
@@ -91,11 +115,15 @@ async function save(){
   });
   const bad=updates.find(p=>!p.name || (p.price!==null && !Number.isFinite(p.price)));
   if(bad){setStatus("Проверь название и цену товара.","error");return;}
-  const {error}=await supabaseClient.from("products").upsert(updates,{onConflict:"id"});
-  if(error){setStatus(error.message,"error");return;}
-  await loadData(); setStatus("Изменения сохранены. Они уже доступны посетителям сайта.","success");
+  const newSettings=readSettings();
+  if(!newSettings.address || !newSettings.phone || !newSettings.whatsapp || !newSettings.map_url){setStatus("Заполни адрес, телефон, WhatsApp и ссылку на карту.","error");return;}
+  const {error:productsError}=await supabaseClient.from("products").upsert(updates,{onConflict:"id"});
+  if(productsError){setStatus(productsError.message,"error");return;}
+  const {error:settingsError}=await supabaseClient.from("site_settings").upsert(newSettings,{onConflict:"id"});
+  if(settingsError){setStatus(settingsError.message,"error");return;}
+  settings={...DEFAULT_SETTINGS,...newSettings};
+  await loadData(); setStatus("Изменения сохранены. Цены и настройки уже доступны посетителям сайта.","success");
 }
-
 async function boot(){
   show("loginCard",false); show("adminCard",false); show("configWarning",false);
   const session=await getSession();
@@ -103,12 +131,13 @@ async function boot(){
   if(session.user.email?.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
     await supabaseClient.auth.signOut(); show("loginCard",true); setStatus("Этот аккаунт не является администратором Tut Dessert.","error"); return;
   }
-  $("adminEmail").textContent=session.user.email;
-  show("adminCard",true);
-  try{await loadData(); if(!data.length)setStatus("Таблица пуста. Нажми «Загрузить исходный каталог». ");}
-  catch(e){setStatus(e.message||"Не удалось загрузить товары.","error")}
+  $("adminEmail").textContent=session.user.email; show("adminCard",true);
+  try{
+    await loadSettings();
+    await loadData();
+    if(!data.length)setStatus("Таблица товаров пуста. Нажми «Загрузить исходный каталог». ");
+  }catch(e){setStatus(e.message||"Не удалось загрузить данные.","error")}
 }
-
 $("login").onclick=login; $("password").addEventListener("keydown",e=>{if(e.key==="Enter")login()}); $("logout").onclick=logout; $("seed").onclick=seed; $("save").onclick=save;
 if(supabaseClient) supabaseClient.auth.onAuthStateChange(()=>{});
 boot();
