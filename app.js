@@ -72,7 +72,67 @@ async function loadProducts(){
 
 function displayPrice(p){ return p.price_label ? p.price_label : (typeof p.price==="number" ? p.price.toLocaleString("ru-RU") : p.price); }
 function renderFilters(){const cats=["Все",...new Set(products().map(p=>p.category))];document.getElementById("filters").innerHTML=cats.map(c=>`<button class="filter ${c===activeCategory?"active":""}" data-cat="${c}">${c}</button>`).join("");document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{activeCategory=b.dataset.cat;renderFilters();renderProducts()})}
-function renderProducts(){const list=products().filter(p=>activeCategory==="Все"||p.category===activeCategory);document.getElementById("productGrid").innerHTML=list.map(p=>`<article class="product-card"><div class="product-art">${p.image_url?`<img src="${p.image_url}" alt="${p.name}">`:(p.emoji||"🍰")}</div><div class="product-info"><h3>${p.name}</h3><p class="product-desc">${p.desc||""}</p><div class="product-bottom"><div class="price">${displayPrice(p)} <small>${p.unit||""}</small></div><button class="add-button" data-add="${p.id}" aria-label="Добавить ${p.name} в корзину">+</button></div></div></article>`).join("");document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add))}
+function openPhotoModal(src, alt){
+  let modal=document.getElementById("photoModal");
+
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="photoModal";
+    modal.className="photo-modal";
+    modal.innerHTML=`
+      <button class="photo-modal-close" aria-label="Закрыть">×</button>
+      <img src="" alt="">
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click",e=>{
+      if(e.target===modal || e.target.classList.contains("photo-modal-close")){
+        modal.classList.remove("open");
+      }
+    });
+  }
+
+  const img=modal.querySelector("img");
+  img.src=src;
+  img.alt=alt||"Фото товара";
+  modal.classList.add("open");
+}function renderProducts(){
+  const list=products().filter(
+    p=>activeCategory==="Все"||p.category===activeCategory
+  );
+
+  document.getElementById("productGrid").innerHTML=list.map(p=>`
+    <article class="product-card">
+      <div class="product-art"
+           ${p.image_url ? `onclick="openPhotoModal('${p.image_url}','${p.name}')"` : ""}>
+        ${p.image_url
+          ? `<img src="${p.image_url}" alt="${p.name}">`
+          : (p.emoji||"🍰")}
+      </div>
+
+      <div class="product-info">
+        <h3>${p.name}</h3>
+        <p class="product-desc">${p.desc||""}</p>
+
+        <div class="product-bottom">
+          <div class="price">
+            ${displayPrice(p)} <small>${p.unit||""}</small>
+          </div>
+
+          <button class="add-button"
+                  data-add="${p.id}"
+                  aria-label="Добавить ${p.name} в корзину">
+            +
+          </button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  document.querySelectorAll("[data-add]").forEach(
+    b=>b.onclick=()=>addToCart(b.dataset.add)
+  );
+}{const list=products().filter(p=>activeCategory==="Все"||p.category===activeCategory);document.getElementById("productGrid").innerHTML=list.map(p=>`<article class="product-card"><div class="product-art">${p.image_url?`<img src="${p.image_url}" alt="${p.name}">`:(p.emoji||"🍰")}</div><div class="product-info"><h3>${p.name}</h3><p class="product-desc">${p.desc||""}</p><div class="product-bottom"><div class="price">${displayPrice(p)} <small>${p.unit||""}</small></div><button class="add-button" data-add="${p.id}" aria-label="Добавить ${p.name} в корзину">+</button></div></div></article>`).join("");document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add))}
 function saveCart(){localStorage.setItem("tutCart",JSON.stringify(cart));renderCartCount()}
 function addToCart(id){const p=products().find(x=>x.id===id);if(!p)return;const item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});saveCart();renderCart();openCart()}
 function renderCartCount(){document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.qty,0)}
