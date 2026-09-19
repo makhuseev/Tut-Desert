@@ -1,3 +1,13 @@
+// Tut Dessert — self-contained admin Supabase connection
+// This uses the browser-safe Publishable key. Never put a service_role/secret key here.
+const SUPABASE_URL = "https://tsemlertlvhgnfvtdnjq.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_I8XmDXRwwcQHhLKXCr25iw_jWbaOS8l";
+const supabaseClient = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    })
+  : null;
+
 const DEFAULTS = [
 {id:"bento",name:"Бенто-торт",category:"Торты",price:4000,price_label:"",unit:"₸/шт.",emoji:"🎂",desc:"Небольшой торт для маленького, но важного повода."},
 {id:"meringue",name:"Меренговый рулет",category:"Торты",price:5000,price_label:"",unit:"₸/шт.",emoji:"🍓",desc:"Воздушное безе с нежной начинкой."},
@@ -39,7 +49,7 @@ function show(id,visible=true){const el=$(id);if(el)el.classList.toggle("hidden"
 function setStatus(message,type="info"){const el=$("status");if(el){el.textContent=message;el.className=`status ${type}`}}
 
 async function getSession(){
-  if(typeof supabaseClient==="undefined"||!supabaseClient){
+  if(!supabaseClient){
     show("configWarning",true); show("loginCard",false); return null;
   }
   const {data,error}=await supabaseClient.auth.getSession();
