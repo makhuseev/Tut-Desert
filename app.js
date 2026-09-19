@@ -132,7 +132,7 @@ function openPhotoModal(src, alt){
   document.querySelectorAll("[data-add]").forEach(
     b=>b.onclick=()=>addToCart(b.dataset.add)
   );
-}{const list=products().filter(p=>activeCategory==="Все"||p.category===activeCategory);document.getElementById("productGrid").innerHTML=list.map(p=>`<article class="product-card"><div class="product-art">${p.image_url?`<img src="${p.image_url}" alt="${p.name}">`:(p.emoji||"🍰")}</div><div class="product-info"><h3>${p.name}</h3><p class="product-desc">${p.desc||""}</p><div class="product-bottom"><div class="price">${displayPrice(p)} <small>${p.unit||""}</small></div><button class="add-button" data-add="${p.id}" aria-label="Добавить ${p.name} в корзину">+</button></div></div></article>`).join("");document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add))}
+
 function saveCart(){localStorage.setItem("tutCart",JSON.stringify(cart));renderCartCount()}
 function addToCart(id){const p=products().find(x=>x.id===id);if(!p)return;const item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});saveCart();renderCart();openCart()}
 function renderCartCount(){document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.qty,0)}
