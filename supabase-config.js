@@ -1,8 +1,7 @@
 // Tut Dessert — Supabase configuration
 
-const SUPABASE_URL = "https://tsemlertlvhgnfvtdnjq.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_I8XmDXRwwcQHhLKXCr25iw_jWbaOS8l";
+const SUPABASE_URL = "ТВОЙ_SUPABASE_URL";
+const SUPABASE_PUBLISHABLE_KEY = "ТВОЙ_sb_publishable_КЛЮЧ";
 
 const SUPABASE_CONFIGURED = true;
 
