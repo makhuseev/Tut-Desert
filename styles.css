@@ -79,6 +79,30 @@
 .product-art img{
   width:auto;
   height:auto;
+  max-width:55%;
+  max-height:180px;
+  object-fit:contain;
+  display:block;
+}
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.product-art img{
+  width:auto;
+  height:auto;
+  max-width:55%;
+  max-height:180px;
+  object-fit:contain;
+  display:block;
+}
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.product-art img{
+  width:auto;
+  height:auto;
   max-width:70%;
   max-height:190px;
   object-fit:contain;
