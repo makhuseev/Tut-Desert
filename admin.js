@@ -90,9 +90,48 @@ async function seed(){
  await loadData();status("Каталог загружен.","success");
 }
 async function save(){
- const updates=data.map((p,i)=>({id:p.id,name:$(`[data-name="${i}"]`).value.trim(),category:p.category,price:$(`[data-price="${i}"]`).value.trim()===""?null:Number($(`[data-price="${i}"]`).value),price_label:$(`[data-label="${i}"]`).value.trim(),unit:p.unit,description:p.description,emoji:p.emoji,image_url:p.image_url||null,is_active:$(`[data-active="${i}"]`).checked}));
- const r=await supabaseClient.from("products").upsert(updates,{onConflict:"id"});
- if(r.error){status(r.error.message,"error");return} await loadData();status("Изменения сохранены.","success");
+  const updates = data.map((p,i)=>({
+    id: p.id,
+    name: $(`[data-name="${i}"]`).value.trim(),
+    category: p.category,
+    price: $(`[data-price="${i}"]`).value.trim()==="" ? null : Number($(`[data-price="${i}"]`).value),
+    price_label: $(`[data-label="${i}"]`).value.trim(),
+    unit: p.unit,
+    description: p.description,
+    emoji: p.emoji,
+    image_url: p.image_url,
+    is_active: $(`[data-active="${i}"]`).checked
+  }));
+
+  try {
+    for(const p of updates){
+      const { error } = await supabaseClient
+        .from("products")
+        .update({
+          name: p.name,
+          category: p.category,
+          price: p.price,
+          price_label: p.price_label,
+          unit: p.unit,
+          description: p.description,
+          emoji: p.emoji,
+          image_url: p.image_url,
+          is_active: p.is_active
+        })
+        .eq("id", p.id);
+
+      if(error){
+        status(error.message,"error");
+        return;
+      }
+    }
+
+    await loadData();
+    status("Изменения сохранены.","success");
+
+  } catch(error) {
+    status(error.message || "Ошибка сохранения","error");
+  }
 }
 async function loadSettings(){
  const r=await supabaseClient.from("site_settings").select("*").eq("id",1).maybeSingle();
