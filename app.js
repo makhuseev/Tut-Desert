@@ -1,3 +1,4 @@
+const supabaseClient = window.supabaseClient;
 const PRODUCTS = [
 {id:"bento",name:"Бенто-торт",category:"Торты",price:4000,unit:"₸/шт.",emoji:"🎂",desc:"Небольшой торт для маленького, но важного повода."},
 {id:"meringue",name:"Меренговый рулет",category:"Торты",price:5000,unit:"₸/шт.",emoji:"🍓",desc:"Воздушное безе с нежной начинкой."},
