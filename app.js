@@ -162,7 +162,23 @@ const WORKS = [
   {src:"images/works/work-3.jpg.svg", alt:"Работа Tut Dessert 3"},
   {src:"images/works/work-4.jpg.svg", alt:"Работа Tut Dessert 4"},
   {src:"images/works/work-5.jpg.svg", alt:"Работа Tut Dessert 5"},
-  {src:"images/works/work-6.jpg.svg", alt:"Работа Tut Dessert 6"}
+  {src:"images/works/work-6.jpg.svg", alt:"Работа Tut Dessert 6"},
+  {src:"images/works/work-7.jpg.svg", alt:"Работа Tut Dessert 7"},
+  {src:"images/works/work-8.jpg.svg", alt:"Работа Tut Dessert 8"},
+  {src:"images/works/work-9.jpg.svg", alt:"Работа Tut Dessert 9"},
+  {src:"images/works/work-10.jpg.svg", alt:"Работа Tut Dessert 10"},
+  {src:"images/works/work-11.jpg.svg", alt:"Работа Tut Dessert 11"},
+  {src:"images/works/work-12.jpg.svg", alt:"Работа Tut Dessert 12"},
+  {src:"images/works/work-13.jpg.svg", alt:"Работа Tut Dessert 13"},
+  {src:"images/works/work-14.jpg.svg", alt:"Работа Tut Dessert 14"},
+  {src:"images/works/work-15.jpg.svg", alt:"Работа Tut Dessert 15"},
+  {src:"images/works/work-16.jpg.svg", alt:"Работа Tut Dessert 16"},
+  {src:"images/works/work-17.jpg.svg", alt:"Работа Tut Dessert 17"},
+  {src:"images/works/work-18.jpg.svg", alt:"Работа Tut Dessert 18"},
+  {src:"images/works/work-19.jpg.svg", alt:"Работа Tut Dessert 19"},
+  {src:"images/works/work-20.jpg.svg", alt:"Работа Tut Dessert 20"},
+  {src:"images/works/work-21.jpg.svg", alt:"Работа Tut Dessert 21"},
+  {src:"images/works/work-22.jpg.svg", alt:"Работа Tut Dessert 22"}
 ];
 
 let worksIndex = 0;
