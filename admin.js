@@ -1,41 +1,282 @@
 const supabaseClient = window.supabaseClient;
 
 // Tut Dessert — admin panel
-
 const ADMIN_EMAIL = "makhuseev0103@gmail.com";
 
 const IMAGE_BUCKET = "product-images";
 const GALLERY_BUCKET = "gallery-images";
-const GALLERY_SLOTS = 22;
 
 const DEFAULTS = [
-  {id:"bento",name:"Бенто-торт",category:"Торты",price:4000,price_label:"",unit:"₸/шт.",emoji:"🎂",desc:"Небольшой торт для маленького, но важного повода."},
-  {id:"meringue",name:"Меренговый рулет",category:"Торты",price:5000,price_label:"",unit:"₸/шт.",emoji:"🍓",desc:"Воздушное безе с нежной начинкой."},
-  {id:"milk",name:"Молочная девочка",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🍰",desc:"Тонкие коржи на сгущённом молоке, крем-чиз."},
-  {id:"honey",name:"Медовый",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🍯",desc:"Классический торт с ароматным мёдом."},
-  {id:"red",name:"Красный бархат",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🍒",desc:"Нежный бисквит и крем-чиз."},
-  {id:"pistachio",name:"Фисташковый",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"💚",desc:"Фисташковый бисквит, малиновый конфитюр, крем-чиз."},
-  {id:"nutella",name:"Нутелла",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🍫",desc:"Шоколадный бисквит, крем-чиз с нутеллой."},
-  {id:"whoopie",name:"Вуппи пай",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🧁",desc:"Шоколадный мини-бисквит с нежным крем-чизом."},
-  {id:"snickers",name:"Сникерс",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🥜",desc:"Шоколадный бисквит, арахис и карамель."},
-  {id:"caramel",name:"Шоко-карамель",category:"Торты",price:6000,price_label:"",unit:"₸/кг",emoji:"🍫",desc:"Шоколадный бисквит с карамельным кремом."},
-  {id:"carrot",name:"Морковный",category:"Торты",price:6500,price_label:"",unit:"₸/кг",emoji:"🥕",desc:"Пряный бисквит с крем-чизом."},
-  {id:"oreo",name:"Орео-кейк",category:"Торты",price:6500,price_label:"",unit:"₸/кг",emoji:"🍪",desc:"Шоколадный бисквит, крем-чиз и кусочки Oreo."},
-  {id:"oriental",name:"Восточный пирог",category:"Пироги",price:null,price_label:"2800 / 4000",unit:"₸",emoji:"🥧",desc:"Домашний пирог. Доступны два размера."},
-  {id:"curd-pie",name:"Творожный пирог",category:"Пироги",price:null,price_label:"2800 / 4000",unit:"₸",emoji:"🥧",desc:"Нежная творожная начинка."},
-  {id:"banoffee",name:"Банофи пай",category:"Пироги",price:null,price_label:"2800 / 4000",unit:"₸",emoji:"🍌",desc:"Банан, карамель и нежный крем."},
-  {id:"poppy",name:"Маковый пирог",category:"Пироги",price:5000,price_label:"",unit:"₸",emoji:"🥮",desc:"Ароматный пирог с маковой начинкой."},
-  {id:"buns",name:"Булочки",category:"Пирожные",price:120,price_label:"",unit:"₸/шт.",emoji:"🥐",desc:"С творогом, сгущёнкой, повидлом или без начинки."},
-  {id:"tubes",name:"Трубочки",category:"Пирожные",price:200,price_label:"",unit:"₸/шт.",emoji:"🥨",desc:"Хрустящие трубочки с нежной начинкой."},
-  {id:"samsa",name:"Самса",category:"Пирожные",price:250,price_label:"",unit:"₸/шт.",emoji:"🥟",desc:"С курицей, мясом или сыром."},
-  {id:"sochniki",name:"Сочники",category:"Пирожные",price:200,price_label:"",unit:"₸/шт.",emoji:"🍪",desc:"Нежная выпечка с творожной начинкой."},
-  {id:"cupcakes",name:"Капкейки",category:"Пирожные",price:250,price_label:"",unit:"₸/шт.",emoji:"🧁",desc:"Шоколадный, ванильный или красный бархат; крем-чиз."},
-  {id:"profiteroles",name:"Профитроли",category:"Пирожные",price:300,price_label:"",unit:"₸/шт.",emoji:"🍮",desc:"Заварное тесто и крем-пломбир."},
-  {id:"pavlova",name:"Анна Павлова",category:"Пирожные",price:300,price_label:"",unit:"₸/шт.",emoji:"🍓",desc:"Воздушное безе с ягодным конфитюром и кремом-чиз."},
-  {id:"buffet",name:"Фуршетные пирожные",category:"Пирожные",price:250,price_label:"",unit:"₸/шт.",emoji:"🍰",desc:"Ванильный, шоколадный или красный бархат."},
-  {id:"thonmomo",name:"Тхонмомо",category:"Пирожные",price:300,price_label:"",unit:"₸/шт.",emoji:"🍬",desc:"Небольшое сладкое угощение."},
-  {id:"tartlets",name:"Тарталетки",category:"Пирожные",price:400,price_label:"",unit:"₸/шт.",emoji:"🧁",desc:"Песочная основа, крем-пломбир и свежие ягоды."},
-  {id:"curd-tartlets",name:"Творожные тарталетки",category:"Пирожные",price:400,price_label:"",unit:"₸/шт.",emoji:"🍓",desc:"Песочная основа, творожная начинка и безе."}
+  {
+    id:"bento",
+    name:"Бенто-торт",
+    category:"Торты",
+    price:4000,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🎂",
+    desc:"Небольшой торт для маленького, но важного повода."
+  },
+  {
+    id:"meringue",
+    name:"Меренговый рулет",
+    category:"Торты",
+    price:5000,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍓",
+    desc:"Воздушное безе с нежной начинкой."
+  },
+  {
+    id:"milk",
+    name:"Молочная девочка",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍰",
+    desc:"Тонкие коржи на сгущённом молоке, крем-чиз."
+  },
+  {
+    id:"honey",
+    name:"Медовый",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍯",
+    desc:"Классический торт с ароматным мёдом."
+  },
+  {
+    id:"red",
+    name:"Красный бархат",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍒",
+    desc:"Нежный бисквит и крем-чиз."
+  },
+  {
+    id:"pistachio",
+    name:"Фисташковый",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"💚",
+    desc:"Фисташковый бисквит, малиновый конфитюр, крем-чиз."
+  },
+  {
+    id:"nutella",
+    name:"Нутелла",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍫",
+    desc:"Шоколадный бисквит, крем-чиз с нутеллой."
+  },
+  {
+    id:"whoopie",
+    name:"Вуппи пай",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🧁",
+    desc:"Шоколадный мини-бисквит с нежным крем-чизом."
+  },
+  {
+    id:"snickers",
+    name:"Сникерс",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🥜",
+    desc:"Шоколадный бисквит, арахис и карамель."
+  },
+  {
+    id:"caramel",
+    name:"Шоко-карамель",
+    category:"Торты",
+    price:6000,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍫",
+    desc:"Шоколадный бисквит с карамельным кремом."
+  },
+  {
+    id:"carrot",
+    name:"Морковный",
+    category:"Торты",
+    price:6500,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🥕",
+    desc:"Пряный бисквит с крем-чизом."
+  },
+  {
+    id:"oreo",
+    name:"Орео-кейк",
+    category:"Торты",
+    price:6500,
+    price_label:"",
+    unit:"₸/кг",
+    emoji:"🍪",
+    desc:"Шоколадный бисквит, крем-чиз и кусочки Oreo."
+  },
+  {
+    id:"oriental",
+    name:"Восточный пирог",
+    category:"Пироги",
+    price:null,
+    price_label:"2800 / 4000",
+    unit:"₸",
+    emoji:"🥧",
+    desc:"Домашний пирог. Доступны два размера."
+  },
+  {
+    id:"curd-pie",
+    name:"Творожный пирог",
+    category:"Пироги",
+    price:null,
+    price_label:"2800 / 4000",
+    unit:"₸",
+    emoji:"🥧",
+    desc:"Нежная творожная начинка."
+  },
+  {
+    id:"banoffee",
+    name:"Банофи пай",
+    category:"Пироги",
+    price:null,
+    price_label:"2800 / 4000",
+    unit:"₸",
+    emoji:"🍌",
+    desc:"Банан, карамель и нежный крем."
+  },
+  {
+    id:"poppy",
+    name:"Маковый пирог",
+    category:"Пироги",
+    price:5000,
+    price_label:"",
+    unit:"₸",
+    emoji:"🥮",
+    desc:"Ароматный пирог с маковой начинкой."
+  },
+  {
+    id:"buns",
+    name:"Булочки",
+    category:"Пирожные",
+    price:120,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🥐",
+    desc:"С творогом, сгущёнкой, повидлом или без начинки."
+  },
+  {
+    id:"tubes",
+    name:"Трубочки",
+    category:"Пирожные",
+    price:200,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🥨",
+    desc:"Хрустящие трубочки с нежной начинкой."
+  },
+  {
+    id:"samsa",
+    name:"Самса",
+    category:"Пирожные",
+    price:250,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🥟",
+    desc:"С курицей, мясом или сыром."
+  },
+  {
+    id:"sochniki",
+    name:"Сочники",
+    category:"Пирожные",
+    price:200,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍪",
+    desc:"Нежная выпечка с творожной начинкой."
+  },
+  {
+    id:"cupcakes",
+    name:"Капкейки",
+    category:"Пирожные",
+    price:250,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🧁",
+    desc:"Шоколадный, ванильный или красный бархат; крем-чиз."
+  },
+  {
+    id:"profiteroles",
+    name:"Профитроли",
+    category:"Пирожные",
+    price:300,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍮",
+    desc:"Заварное тесто и крем-пломбир."
+  },
+  {
+    id:"pavlova",
+    name:"Анна Павлова",
+    category:"Пирожные",
+    price:300,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍓",
+    desc:"Воздушное безе с ягодным конфитюром и кремом-чиз."
+  },
+  {
+    id:"buffet",
+    name:"Фуршетные пирожные",
+    category:"Пирожные",
+    price:250,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍰",
+    desc:"Ванильный, шоколадный или красный бархат."
+  },
+  {
+    id:"thonmomo",
+    name:"Тхонмомо",
+    category:"Пирожные",
+    price:300,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍬",
+    desc:"Небольшое сладкое угощение."
+  },
+  {
+    id:"tartlets",
+    name:"Тарталетки",
+    category:"Пирожные",
+    price:400,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🧁",
+    desc:"Песочная основа, крем-пломбир и свежие ягоды."
+  },
+  {
+    id:"curd-tartlets",
+    name:"Творожные тарталетки",
+    category:"Пирожные",
+    price:400,
+    price_label:"",
+    unit:"₸/шт.",
+    emoji:"🍓",
+    desc:"Песочная основа, творожная начинка и безе."
+  }
 ];
 
 let data = [];
@@ -43,13 +284,14 @@ let galleryData = [];
 
 const $ = id => document.getElementById(id);
 
-const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#039;"
-}[m]));
+const esc = s =>
+  String(s ?? "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[m]));
 
 function show(id, value = true) {
   const e = $(id);
@@ -63,21 +305,14 @@ function status(message, type = "info") {
     e.textContent = message;
     e.className = "status " + type;
   }
-}
 
-function galleryStatus(message, type = "info") {
-  const e = $("galleryStatus");
-
-  if (e) {
-    e.textContent = message;
-    e.className = "status " + type;
-  }
+  console.log("[Tut Dessert]", message);
 }
 
 
 /* =========================================================
-   ТОВАРЫ
-   ========================================================= */
+   PRODUCTS
+========================================================= */
 
 async function loadData() {
   const r = await supabaseClient
@@ -91,6 +326,7 @@ async function loadData() {
 
   render();
 }
+
 
 function render() {
   const rows = $("rows");
@@ -181,9 +417,10 @@ async function uploadImage(i, file) {
 
   const p = data[i];
 
-  const ext = (file.name.split(".").pop() || "jpg")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "") || "jpg";
+  const ext =
+    (file.name.split(".").pop() || "jpg")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "jpg";
 
   status("Загрузка фото…");
 
@@ -199,6 +436,7 @@ async function uploadImage(i, file) {
 
   if (u.error) {
     status(u.error.message, "error");
+    console.error(u.error);
     return;
   }
 
@@ -215,6 +453,7 @@ async function uploadImage(i, file) {
 
   if (r.error) {
     status(r.error.message, "error");
+    console.error(r.error);
     return;
   }
 
@@ -232,17 +471,18 @@ async function removeImage(i) {
 
   if (!confirm("Удалить фото?")) return;
 
-  const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
+  const marker =
+    `/storage/v1/object/public/${IMAGE_BUCKET}/`;
 
   if (p.image_url?.includes(marker)) {
 
-    const path = decodeURIComponent(
-      p.image_url
-        .split(marker)[1]
-        .split("?")[0]
-    );
+    const path =
+      decodeURIComponent(
+        p.image_url.split(marker)[1]
+      );
 
-    await supabaseClient.storage
+    await supabaseClient
+      .storage
       .from(IMAGE_BUCKET)
       .remove([path]);
   }
@@ -268,14 +508,14 @@ async function removeImage(i) {
 
 
 /* =========================================================
-   ЗАГРУЗКА ИСХОДНОГО КАТАЛОГА
-   ========================================================= */
+   SEED PRODUCTS
+========================================================= */
 
 async function seed() {
 
-  if (!confirm("Загрузить исходный каталог из 27 товаров?")) {
-    return;
-  }
+  if (!confirm(
+    "Загрузить исходный каталог из 27 товаров?"
+  )) return;
 
   const old = {};
 
@@ -298,7 +538,10 @@ async function seed() {
 
   const r = await supabaseClient
     .from("products")
-    .upsert(payload,{onConflict:"id"});
+    .upsert(
+      payload,
+      {onConflict:"id"}
+    );
 
   if (r.error) {
     status(r.error.message,"error");
@@ -307,44 +550,65 @@ async function seed() {
 
   await loadData();
 
-  status("Каталог загружен.","success");
+  status(
+    "Каталог загружен.",
+    "success"
+  );
 }
 
 
 /* =========================================================
-   СОХРАНЕНИЕ ТОВАРОВ
-   ========================================================= */
+   SAVE PRODUCTS
+========================================================= */
 
 async function save() {
 
   try {
 
     if (!data.length) {
-      status("Каталог пуст.","error");
+      status(
+        "Каталог пуст.",
+        "error"
+      );
       return;
     }
 
-    status("Сохраняем изменения…");
+    status(
+      "Сохраняем изменения…"
+    );
 
-    for (let i = 0; i < data.length; i++) {
+    for (
+      let i = 0;
+      i < data.length;
+      i++
+    ) {
 
       const p = data[i];
 
       const nameEl =
-        document.querySelector(`[data-name="${i}"]`);
+        document.querySelector(
+          `[data-name="${i}"]`
+        );
 
       const priceEl =
-        document.querySelector(`[data-price="${i}"]`);
+        document.querySelector(
+          `[data-price="${i}"]`
+        );
 
       const labelEl =
-        document.querySelector(`[data-label="${i}"]`);
+        document.querySelector(
+          `[data-label="${i}"]`
+        );
 
       const activeEl =
-        document.querySelector(`[data-active="${i}"]`);
+        document.querySelector(
+          `[data-active="${i}"]`
+        );
 
       if (!priceEl) continue;
 
-      const priceText = priceEl.value.trim();
+      const priceText =
+        priceEl.value.trim();
 
       const price =
         priceText === ""
@@ -355,10 +619,12 @@ async function save() {
         priceText !== "" &&
         !Number.isFinite(price)
       ) {
+
         status(
           `Неверная цена у товара «${p.name}».`,
           "error"
         );
+
         return;
       }
 
@@ -412,7 +678,8 @@ async function save() {
     console.error(e);
 
     status(
-      "Ошибка сохранения: " + (e.message || e),
+      "Ошибка сохранения: " +
+      (e.message || e),
       "error"
     );
   }
@@ -420,8 +687,8 @@ async function save() {
 
 
 /* =========================================================
-   НАСТРОЙКИ САЙТА
-   ========================================================= */
+   SITE SETTINGS
+========================================================= */
 
 async function loadSettings() {
 
@@ -431,7 +698,13 @@ async function loadSettings() {
     .eq("id",1)
     .maybeSingle();
 
-  if (r.error) return;
+  if (r.error) {
+    console.error(
+      "Ошибка загрузки настроек:",
+      r.error
+    );
+    return;
+  }
 
   const s = r.data || {};
 
@@ -466,7 +739,9 @@ async function saveSettings() {
       $("phone").value.trim(),
 
     whatsapp:
-      $("whatsapp").value.replace(/\D/g,""),
+      $("whatsapp")
+        .value
+        .replace(/\D/g,""),
 
     hours:
       $("hours").value.trim(),
@@ -506,33 +781,80 @@ async function saveSettings() {
 
 
 /* =========================================================
-   НАШИ РАБОТЫ — 22 ФОТО
-   ========================================================= */
+   GALLERY — 22 FIXED SLOTS
+========================================================= */
 
 async function loadGallery() {
+
+  console.log(
+    "Загружаем галерею..."
+  );
+
+  const grid =
+    $("galleryGrid");
+
+  if (!grid) {
+
+    console.warn(
+      "galleryGrid не найден в admin.html"
+    );
+
+    return;
+  }
 
   const r = await supabaseClient
     .from("gallery_images")
     .select("*")
-    .order("sort_order", {ascending:true});
+    .order(
+      "sort_order",
+      {ascending:true}
+    );
 
   if (r.error) {
+
+    console.error(
+      "Ошибка gallery_images:",
+      r.error
+    );
+
     throw r.error;
   }
 
-  const rows = r.data || [];
+  galleryData =
+    r.data || [];
 
-  galleryData = [];
+  /*
+    На всякий случай гарантируем
+    наличие всех 22 слотов.
+  */
 
-  for (let i = 1; i <= GALLERY_SLOTS; i++) {
-
-    const existing = rows.find(
-      x => Number(x.sort_order) === i
+  const existing =
+    new Map(
+      galleryData.map(
+        item => [
+          item.id,
+          item
+        ]
+      )
     );
 
-    galleryData.push(
-      existing || {
-        id:`gallery-${String(i).padStart(2,"0")}`,
+  const slots = [];
+
+  for (
+    let i = 1;
+    i <= 22;
+    i++
+  ) {
+
+    const id =
+      `gallery-${String(i).padStart(2,"0")}`;
+
+    const found =
+      existing.get(id);
+
+    slots.push(
+      found || {
+        id:id,
         sort_order:i,
         image_url:null,
         is_active:true
@@ -540,135 +862,238 @@ async function loadGallery() {
     );
   }
 
+  galleryData = slots;
+
   renderGallery();
 }
 
 
 function renderGallery() {
 
-  const grid = $("galleryGrid");
+  const grid =
+    $("galleryGrid");
 
   if (!grid) return;
 
-  grid.innerHTML = galleryData.map((item, index) => {
+  grid.innerHTML =
+    galleryData.map(
+      (item,index) => {
 
-    const number =
-      String(item.sort_order).padStart(2,"0");
+        const hasImage =
+          !!item.image_url;
 
-    const image = item.image_url;
+        return `
+          <div
+            class="gallery-admin-item"
+            data-gallery-item="${index}"
+            style="
+              border:1px solid #e4d8cc;
+              border-radius:14px;
+              padding:12px;
+              background:#fff;
+              box-sizing:border-box;
+            "
+          >
 
-    return `
-      <div class="gallery-admin-card">
+            <div
+              style="
+                font-weight:600;
+                margin-bottom:8px;
+                color:#5b4034;
+              "
+            >
+              Фото ${index + 1}
+            </div>
 
-        <div class="gallery-admin-preview">
-
-          ${
-            image
-              ? `
-                <img
-                  src="${esc(image)}"
-                  alt="Работа ${number}"
-                >
-              `
-              : `
-                <span>
-                  Фото ${number}
-                </span>
-              `
-          }
-
-        </div>
-
-        <div class="small" style="margin-bottom:8px;">
-          Работа №${number}
-        </div>
-
-        <div class="gallery-admin-actions">
-
-          <label class="upload-btn">
-
-            📷 ${
-              image
-                ? "Заменить"
-                : "Загрузить"
-            }
-
-            <input
-              type="file"
-              accept="image/*"
-              data-gallery-upload="${index}"
-              style="display:none"
+            <div
+              style="
+                width:100%;
+                aspect-ratio:4/3;
+                background:#f5eee8;
+                border-radius:10px;
+                overflow:hidden;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin-bottom:10px;
+              "
             >
 
-          </label>
+              ${
+                hasImage
 
-          ${
-            image
-              ? `
-                <button
-                  type="button"
-                  class="remove-image"
-                  data-gallery-remove="${index}"
+                  ? `
+                    <img
+                      src="${esc(item.image_url)}"
+                      alt="Работа ${index + 1}"
+                      style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        display:block;
+                      "
+                    >
+                  `
+
+                  : `
+                    <div
+                      style="
+                        text-align:center;
+                        color:#9b8475;
+                        padding:20px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-size:32px;
+                          margin-bottom:6px;
+                        "
+                      >
+                        📷
+                      </div>
+
+                      <div>
+                        Фото пока нет
+                      </div>
+                    </div>
+                  `
+              }
+
+            </div>
+
+            <div
+              style="
+                display:flex;
+                gap:8px;
+                flex-wrap:wrap;
+              "
+            >
+
+              <label
+                class="upload-btn"
+                style="
+                  cursor:pointer;
+                  display:inline-flex;
+                  align-items:center;
+                  justify-content:center;
+                "
+              >
+
+                📷
+                ${
+                  hasImage
+                    ? "Заменить"
+                    : "Загрузить"
+                }
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  data-gallery-upload="${index}"
+                  style="display:none;"
                 >
-                  Удалить
-                </button>
-              `
-              : ""
-          }
 
-        </div>
+              </label>
 
-      </div>
-    `;
+              ${
+                hasImage
 
-  }).join("");
+                  ? `
+                    <button
+                      type="button"
+                      class="remove-image"
+                      data-gallery-remove="${index}"
+                    >
+                      Удалить
+                    </button>
+                  `
 
+                  : ""
+              }
+
+            </div>
+
+            <div
+              style="
+                margin-top:8px;
+                font-size:12px;
+                color:#9b8475;
+              "
+            >
+              ${esc(item.id)}
+            </div>
+
+          </div>
+        `;
+      }
+    ).join("");
 
   document
-    .querySelectorAll("[data-gallery-upload]")
+    .querySelectorAll(
+      "[data-gallery-upload]"
+    )
     .forEach(input => {
 
-      input.onchange = () => {
+      input.onchange =
+        () => {
 
-        const index =
-          Number(input.dataset.galleryUpload);
+          const index =
+            Number(
+              input.dataset.galleryUpload
+            );
 
-        const file =
-          input.files && input.files[0];
+          const file =
+            input.files &&
+            input.files[0];
 
-        uploadGalleryImage(index,file);
-      };
+          uploadGalleryImage(
+            index,
+            file
+          );
+        };
 
     });
 
-
   document
-    .querySelectorAll("[data-gallery-remove]")
+    .querySelectorAll(
+      "[data-gallery-remove]"
+    )
     .forEach(button => {
 
-      button.onclick = () => {
+      button.onclick =
+        () => {
 
-        const index =
-          Number(button.dataset.galleryRemove);
+          const index =
+            Number(
+              button.dataset.galleryRemove
+            );
 
-        removeGalleryImage(index);
-      };
+          removeGalleryImage(
+            index
+          );
+        };
 
     });
 }
 
 
 /* =========================================================
-   ЗАГРУЗКА ФОТО В НАШИ РАБОТЫ
-   ========================================================= */
+   GALLERY UPLOAD
+========================================================= */
 
-async function uploadGalleryImage(index,file) {
+async function uploadGalleryImage(
+  index,
+  file
+) {
 
   if (!file) return;
 
-  if (file.size > 10 * 1024 * 1024) {
+  if (
+    file.size >
+    10 * 1024 * 1024
+  ) {
 
-    galleryStatus(
+    status(
       "Максимальный размер фото — 10 МБ.",
       "error"
     );
@@ -676,39 +1101,35 @@ async function uploadGalleryImage(index,file) {
     return;
   }
 
-  const item = galleryData[index];
+  const item =
+    galleryData[index];
 
-  if (!item) return;
+  if (!item) {
 
-  galleryStatus(
-    `Загружаем фото №${item.sort_order}…`
+    status(
+      "Слот галереи не найден.",
+      "error"
+    );
+
+    return;
+  }
+
+  status(
+    `Загружаем фото ${index + 1}…`
   );
 
   try {
 
-    const oldUrl = item.image_url;
-
-    const ext =
-      (
-        file.name
-          .split(".")
-          .pop() || "jpg"
-      )
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g,"") || "jpg";
-
-
     /*
-      Для каждой фотографии создаём уникальный файл.
-      Поэтому новое фото точно не попадёт в кэш старого.
+      Для каждого слота используется
+      постоянный путь.
+
+      Поэтому повторная загрузка
+      автоматически заменяет старое фото.
     */
 
-    const fileName =
-      `gallery-${String(item.sort_order).padStart(2,"0")}-${Date.now()}.${ext}`;
-
     const path =
-      `gallery/${fileName}`;
-
+      `gallery/${item.id}`;
 
     const upload =
       await supabaseClient.storage
@@ -718,58 +1139,94 @@ async function uploadGalleryImage(index,file) {
           file,
           {
             upsert:true,
-            contentType:file.type,
-            cacheControl:"31536000"
+            contentType:
+              file.type || "image/jpeg",
+            cacheControl:"3600"
           }
         );
 
-
     if (upload.error) {
-      throw upload.error;
-    }
 
+      console.error(
+        "Ошибка upload:",
+        upload.error
+      );
+
+      status(
+        upload.error.message,
+        "error"
+      );
+
+      return;
+    }
 
     const publicUrl =
       supabaseClient.storage
         .from(GALLERY_BUCKET)
         .getPublicUrl(path)
-        .data
-        .publicUrl;
+        .data.publicUrl;
 
+    if (!publicUrl) {
+
+      status(
+        "Не удалось получить URL фотографии.",
+        "error"
+      );
+
+      return;
+    }
+
+    /*
+      Добавляем timestamp,
+      чтобы браузер не показывал
+      старую закэшированную фотографию
+      после замены.
+    */
+
+    const finalUrl =
+      publicUrl +
+      "?v=" +
+      Date.now();
 
     const update =
       await supabaseClient
         .from("gallery_images")
         .update({
-          image_url:publicUrl,
+          image_url:finalUrl,
           is_active:true,
-          updated_at:new Date().toISOString()
+          updated_at:
+            new Date().toISOString()
         })
-        .eq("id",item.id);
-
+        .eq(
+          "id",
+          item.id
+        );
 
     if (update.error) {
-      throw update.error;
+
+      console.error(
+        "Ошибка обновления gallery_images:",
+        update.error
+      );
+
+      status(
+        update.error.message,
+        "error"
+      );
+
+      return;
     }
 
+    galleryData[index].image_url =
+      finalUrl;
 
-    /*
-      Если у слота уже было старое фото —
-      удаляем старый файл из Storage.
-    */
-
-    if (oldUrl) {
-
-      await deleteGalleryStorageFile(oldUrl);
-    }
-
-
-    item.image_url = publicUrl;
+    galleryData[index].is_active =
+      true;
 
     renderGallery();
 
-    galleryStatus(
-      `Фото №${item.sort_order} сохранено.`,
+    status(
+      `Фото ${index + 1} сохранено.`,
       "success"
     );
 
@@ -777,8 +1234,8 @@ async function uploadGalleryImage(index,file) {
 
     console.error(e);
 
-    galleryStatus(
-      "Ошибка загрузки: " +
+    status(
+      "Ошибка загрузки фото: " +
       (e.message || e),
       "error"
     );
@@ -787,105 +1244,99 @@ async function uploadGalleryImage(index,file) {
 
 
 /* =========================================================
-   УДАЛЕНИЕ ФОТО ИЗ STORAGE
-   ========================================================= */
+   GALLERY DELETE
+========================================================= */
 
-async function deleteGalleryStorageFile(url) {
-
-  try {
-
-    const marker =
-      `/storage/v1/object/public/${GALLERY_BUCKET}/`;
-
-    if (!url || !url.includes(marker)) {
-      return;
-    }
-
-    let path =
-      url.split(marker)[1];
-
-    path =
-      decodeURIComponent(
-        path.split("?")[0]
-      );
-
-    if (!path) return;
-
-    const result =
-      await supabaseClient.storage
-        .from(GALLERY_BUCKET)
-        .remove([path]);
-
-    if (result.error) {
-      console.warn(
-        "Не удалось удалить старое фото:",
-        result.error
-      );
-    }
-
-  } catch (e) {
-
-    console.warn(
-      "Ошибка удаления файла:",
-      e
-    );
-  }
-}
-
-
-/* =========================================================
-   УДАЛЕНИЕ ФОТО ИЗ СЛОТА
-   ========================================================= */
-
-async function removeGalleryImage(index) {
+async function removeGalleryImage(
+  index
+) {
 
   const item =
     galleryData[index];
 
-  if (!item || !item.image_url) {
-    return;
-  }
+  if (!item) return;
 
   if (
     !confirm(
-      `Удалить фотографию №${item.sort_order}?`
+      `Удалить фото №${index + 1}?`
     )
   ) {
     return;
   }
 
-  galleryStatus(
-    `Удаляем фото №${item.sort_order}…`
+  status(
+    `Удаляем фото ${index + 1}…`
   );
 
   try {
 
-    await deleteGalleryStorageFile(
-      item.image_url
-    );
+    const path =
+      `gallery/${item.id}`;
 
+    /*
+      Удаляем физический файл
+      из Storage.
+    */
 
-    const r =
+    const remove =
+      await supabaseClient.storage
+        .from(GALLERY_BUCKET)
+        .remove([path]);
+
+    if (remove.error) {
+
+      console.error(
+        "Ошибка удаления Storage:",
+        remove.error
+      );
+
+      /*
+        Не останавливаем процесс,
+        потому что запись в таблице
+        всё равно нужно очистить.
+      */
+    }
+
+    /*
+      Очищаем URL в таблице.
+    */
+
+    const update =
       await supabaseClient
         .from("gallery_images")
         .update({
           image_url:null,
-          updated_at:new Date().toISOString()
+          is_active:true,
+          updated_at:
+            new Date().toISOString()
         })
-        .eq("id",item.id);
+        .eq(
+          "id",
+          item.id
+        );
 
+    if (update.error) {
 
-    if (r.error) {
-      throw r.error;
+      console.error(
+        "Ошибка очистки gallery_images:",
+        update.error
+      );
+
+      status(
+        update.error.message,
+        "error"
+      );
+
+      return;
     }
 
-
-    item.image_url = null;
+    galleryData[index].image_url =
+      null;
 
     renderGallery();
 
-    galleryStatus(
-      `Фото №${item.sort_order} удалено.`,
+    status(
+      `Фото ${index + 1} удалено.`,
       "success"
     );
 
@@ -893,8 +1344,8 @@ async function removeGalleryImage(index) {
 
     console.error(e);
 
-    galleryStatus(
-      "Ошибка удаления: " +
+    status(
+      "Ошибка удаления фото: " +
       (e.message || e),
       "error"
     );
@@ -903,66 +1354,8 @@ async function removeGalleryImage(index) {
 
 
 /* =========================================================
-   АВТОМАТИЧЕСКОЕ СОЗДАНИЕ 22 СЛОТОВ
-   ========================================================= */
-
-async function ensureGallerySlots() {
-
-  try {
-
-    const rows = [];
-
-    for (
-      let i = 1;
-      i <= GALLERY_SLOTS;
-      i++
-    ) {
-
-      rows.push({
-        id:
-          `gallery-${String(i).padStart(2,"0")}`,
-
-        sort_order:i,
-
-        image_url:null,
-
-        is_active:true
-      });
-    }
-
-
-    const r =
-      await supabaseClient
-        .from("gallery_images")
-        .upsert(
-          rows,
-          {
-            onConflict:"id",
-            ignoreDuplicates:true
-          }
-        );
-
-
-    if (r.error) {
-      console.warn(
-        "Не удалось проверить слоты галереи:",
-        r.error
-      );
-    }
-
-  } catch (e) {
-
-    console.warn(
-      "Ошибка проверки слотов:",
-      e
-    );
-  }
-}
-
-
-/* =========================================================
-   АВТОРИЗАЦИЯ
-   ========================================================= */
+   LOGIN
+========================================================= */
 
 async function login() {
 
@@ -993,7 +1386,6 @@ async function login() {
         password
       });
 
-
   if (r.error) {
 
     status(
@@ -1017,8 +1409,8 @@ async function logout() {
 
 
 /* =========================================================
-   ЗАПУСК АДМИНКИ
-   ========================================================= */
+   BOOT
+========================================================= */
 
 async function boot() {
 
@@ -1037,10 +1429,9 @@ async function boot() {
     false
   );
 
-
   const r =
-    await supabaseClient.auth.getSession();
-
+    await supabaseClient.auth
+      .getSession();
 
   if (r.error) {
 
@@ -1057,10 +1448,8 @@ async function boot() {
     return;
   }
 
-
   const session =
     r.data.session;
-
 
   if (!session) {
 
@@ -1071,7 +1460,6 @@ async function boot() {
 
     return;
   }
-
 
   if (
     (session.user.email || "")
@@ -1085,34 +1473,36 @@ async function boot() {
     return;
   }
 
+  if ($("adminEmail")) {
 
-  $("adminEmail").textContent =
-    session.user.email;
+    $("adminEmail").textContent =
+      session.user.email;
+  }
 
   show(
     "adminCard",
     true
   );
 
-
   try {
 
+    /*
+      Загружаем товары.
+    */
+
     await loadData();
+
+    /*
+      Загружаем настройки сайта.
+    */
 
     await loadSettings();
 
     /*
-      Сначала проверяем 22 слота.
-    */
-
-    await ensureGallerySlots();
-
-    /*
-      Затем загружаем фотографии.
+      Загружаем 22 слота галереи.
     */
 
     await loadGallery();
-
 
     if (!data.length) {
 
@@ -1123,7 +1513,10 @@ async function boot() {
 
   } catch (e) {
 
-    console.error(e);
+    console.error(
+      "Ошибка boot:",
+      e
+    );
 
     status(
       e.message ||
@@ -1135,45 +1528,54 @@ async function boot() {
 
 
 /* =========================================================
-   СОБЫТИЯ
-   ========================================================= */
+   EVENTS
+========================================================= */
 
 document.addEventListener(
   "DOMContentLoaded",
   () => {
 
-    $("login").onclick =
-      login;
+    if ($("login")) {
+      $("login").onclick =
+        login;
+    }
 
+    if ($("password")) {
 
-    $("password")
-      .addEventListener(
-        "keydown",
-        e => {
+      $("password")
+        .addEventListener(
+          "keydown",
+          e => {
 
-          if (e.key === "Enter") {
-            login();
+            if (
+              e.key === "Enter"
+            ) {
+              login();
+            }
+
           }
+        );
+    }
 
-        }
-      );
+    if ($("logout")) {
+      $("logout").onclick =
+        logout;
+    }
 
+    if ($("seed")) {
+      $("seed").onclick =
+        seed;
+    }
 
-    $("logout").onclick =
-      logout;
+    if ($("save")) {
+      $("save").onclick =
+        save;
+    }
 
-
-    $("seed").onclick =
-      seed;
-
-
-    $("save").onclick =
-      save;
-
-
-    $("saveSettings").onclick =
-      saveSettings;
-
+    if ($("saveSettings")) {
+      $("saveSettings").onclick =
+        saveSettings;
+    }
 
     boot();
 
