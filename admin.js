@@ -407,6 +407,7 @@ async function boot() {
   try {
     await loadData();
     await loadSettings();
+    await loadGallery();
 
     if (!data.length) {
       status("Таблица пуста. Нажми «Загрузить исходный каталог».");
