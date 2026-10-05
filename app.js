@@ -121,8 +121,21 @@ async function loadSiteSettings(){
 }
 
 async function loadProducts(){
+
+  const CATEGORY_ORDER = {
+    "Торты": 1,
+    "Пирожные": 2,
+    "Пироги": 3
+  };
+
   if(!supabaseClient){
-    PRODUCT_SOURCE=PRODUCTS;
+
+    PRODUCT_SOURCE = [...PRODUCTS].sort(
+      (a,b)=>
+        (CATEGORY_ORDER[a.category] || 99) -
+        (CATEGORY_ORDER[b.category] || 99)
+    );
+
     return;
   }
 
@@ -133,19 +146,42 @@ async function loadProducts(){
     .order("created_at",{ascending:true});
 
   if(!error && Array.isArray(data) && data.length){
-    PRODUCT_SOURCE=data.map(p=>({
+
+    PRODUCT_SOURCE = data.map(p=>({
       id:p.id,
       name:p.name,
       category:p.category,
-      price:p.price===null?undefined:Number(p.price),
-      price_label:p.price_label||"",
-      unit:p.unit||"",
-      emoji:p.emoji||"🍰",
-      desc:p.description||"",
-      image_url:p.image_url||""
+      price:p.price===null
+        ?undefined
+        :Number(p.price),
+      price_label:p.price_label || "",
+      unit:p.unit || "",
+      emoji:p.emoji || "🍰",
+      desc:p.description || "",
+      image_url:p.image_url || ""
     }));
+
+    /* 
+       Фиксированный порядок категорий:
+       1. Торты
+       2. Пирожные
+       3. Пироги
+    */
+
+    PRODUCT_SOURCE.sort(
+      (a,b)=>
+        (CATEGORY_ORDER[a.category] || 99) -
+        (CATEGORY_ORDER[b.category] || 99)
+    );
+
   }else{
-    PRODUCT_SOURCE=PRODUCTS;
+
+    PRODUCT_SOURCE = [...PRODUCTS].sort(
+      (a,b)=>
+        (CATEGORY_ORDER[a.category] || 99) -
+        (CATEGORY_ORDER[b.category] || 99)
+    );
+
   }
 }
 
