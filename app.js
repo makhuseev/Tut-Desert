@@ -155,6 +155,113 @@ function displayPrice(p){
     :(typeof p.price==="number"?p.price.toLocaleString("ru-RU"):p.price);
 }
 
+
+const WORKS = [
+  {src:"images/works/work-1.jpg.svg", alt:"Работа Tut Dessert 1"},
+  {src:"images/works/work-2.jpg.svg", alt:"Работа Tut Dessert 2"},
+  {src:"images/works/work-3.jpg.svg", alt:"Работа Tut Dessert 3"},
+  {src:"images/works/work-4.jpg.svg", alt:"Работа Tut Dessert 4"},
+  {src:"images/works/work-5.jpg.svg", alt:"Работа Tut Dessert 5"},
+  {src:"images/works/work-6.jpg.svg", alt:"Работа Tut Dessert 6"}
+];
+
+let worksIndex = 0;
+
+function renderWorks(){
+  const track = document.getElementById("worksTrack");
+  if(!track) return;
+
+  // Duplicate the list so the horizontal marquee can loop smoothly.
+  const items = [...WORKS, ...WORKS];
+
+  track.innerHTML = items.map((item, i) => `
+    <button class="work-card" type="button"
+      data-work-index="${i % WORKS.length}"
+      aria-label="Открыть ${item.alt}">
+      <img src="${item.src}" alt="${escHtml(item.alt)}" loading="lazy"
+           onerror="this.closest('.work-card').classList.add('work-missing')">
+    </button>
+  `).join("");
+
+  track.querySelectorAll(".work-card").forEach(card => {
+    card.addEventListener("click", () => {
+      openWorksModal(Number(card.dataset.workIndex));
+    });
+  });
+}
+
+function openWorksModal(index){
+  if(!WORKS.length) return;
+  worksIndex = (index + WORKS.length) % WORKS.length;
+
+  let modal = document.getElementById("worksModal");
+
+  if(!modal){
+    modal = document.createElement("div");
+    modal.id = "worksModal";
+    modal.className = "works-modal";
+    modal.innerHTML = `
+      <button class="works-close" type="button" aria-label="Закрыть">×</button>
+      <button class="works-prev" type="button" aria-label="Предыдущее фото">‹</button>
+      <figure class="works-modal-figure">
+        <img id="worksModalImage" src="" alt="">
+      </figure>
+      <button class="works-next" type="button" aria-label="Следующее фото">›</button>
+      <div class="works-counter" id="worksCounter"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector(".works-close").onclick = closeWorksModal;
+    modal.querySelector(".works-prev").onclick = () => changeWorks(-1);
+    modal.querySelector(".works-next").onclick = () => changeWorks(1);
+
+    modal.addEventListener("click", e => {
+      if(e.target === modal) closeWorksModal();
+    });
+
+    document.addEventListener("keydown", e => {
+      if(!modal.classList.contains("open")) return;
+      if(e.key === "Escape") closeWorksModal();
+      if(e.key === "ArrowLeft") changeWorks(-1);
+      if(e.key === "ArrowRight") changeWorks(1);
+    });
+
+    let startX = 0;
+    modal.addEventListener("touchstart", e => {
+      startX = e.changedTouches[0].clientX;
+    }, {passive:true});
+    modal.addEventListener("touchend", e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if(Math.abs(dx) > 50) changeWorks(dx > 0 ? -1 : 1);
+    }, {passive:true});
+  }
+
+  const img = document.getElementById("worksModalImage");
+  const counter = document.getElementById("worksCounter");
+  img.src = WORKS[worksIndex].src;
+  img.alt = WORKS[worksIndex].alt;
+  counter.textContent = `${worksIndex + 1} / ${WORKS.length}`;
+  modal.classList.add("open");
+  document.body.classList.add("modal-open");
+}
+
+function changeWorks(direction){
+  worksIndex = (worksIndex + direction + WORKS.length) % WORKS.length;
+  const img = document.getElementById("worksModalImage");
+  const counter = document.getElementById("worksCounter");
+  if(!img) return;
+  img.src = WORKS[worksIndex].src;
+  img.alt = WORKS[worksIndex].alt;
+  counter.textContent = `${worksIndex + 1} / ${WORKS.length}`;
+}
+
+function closeWorksModal(){
+  const modal = document.getElementById("worksModal");
+  if(modal) modal.classList.remove("open");
+  document.body.classList.remove("modal-open");
+}
+
+
 function renderFilters(){
   const cats=["Все",...new Set(products().map(p=>p.category))];
 
@@ -402,3 +509,7 @@ document.getElementById("orderCart").onclick=()=>{
   renderProducts();
   renderCartCount();
 })();
+
+
+// Галерея "Наши работы"
+renderWorks();
