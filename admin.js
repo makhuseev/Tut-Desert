@@ -3,6 +3,7 @@ const supabaseClient = window.supabaseClient;
 // Tut Dessert — admin panel
 const ADMIN_EMAIL = "makhuseev0103@gmail.com";
 const IMAGE_BUCKET = "product-images";
+const GALLERY_BUCKET = "gallery-images";
 
 const DEFAULTS = [
   {id:"bento",name:"Бенто-торт",category:"Торты",price:4000,price_label:"",unit:"₸/шт.",emoji:"🎂",desc:"Небольшой торт для маленького, но важного повода."},
@@ -35,6 +36,7 @@ const DEFAULTS = [
 ];
 
 let data = [];
+let galleryData = [];
 
 const $ = id => document.getElementById(id);
 
@@ -56,6 +58,16 @@ function status(message, type = "info") {
   if (e) {
     e.textContent = message;
     e.className = "status " + type;
+  }
+}
+
+function galleryStatus(message, type = "info") {
+  const e = $("galleryStatus");
+  if (e) {
+    e.textContent = message;
+    e.className = "status " + type;
+  } else {
+    status(message, type);
   }
 }
 
@@ -83,41 +95,21 @@ function render() {
             ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">`
             : `<span>${esc(p.emoji || "🍰")}</span>`}
         </div>
-
         <label class="upload-btn">
           📷 Загрузить
           <input type="file" data-image="${i}" accept="image/*">
         </label>
-
         ${p.image_url
           ? `<button type="button" class="remove-image" data-remove="${i}">Удалить</button>`
           : ""}
       </div>
-
       <div class="small">${esc(p.id)}</div>
-
       <input data-name="${i}" value="${esc(p.name)}">
-
       <div>${esc(p.category)}</div>
-
-      <input
-        data-price="${i}"
-        value="${p.price == null ? "" : p.price}"
-        placeholder="6000"
-      >
-
-      <input
-        data-label="${i}"
-        value="${esc(p.price_label || "")}"
-        placeholder="2800 / 4000"
-      >
-
+      <input data-price="${i}" value="${p.price == null ? "" : p.price}" placeholder="6000">
+      <input data-label="${i}" value="${esc(p.price_label || "")}" placeholder="2800 / 4000">
       <label class="switch">
-        <input
-          type="checkbox"
-          data-active="${i}"
-          ${p.is_active !== false ? "checked" : ""}
-        >
+        <input type="checkbox" data-active="${i}" ${p.is_active !== false ? "checked" : ""}>
         Активен
       </label>
     </div>
@@ -190,7 +182,11 @@ async function removeImage(i) {
 
   if (p.image_url?.includes(marker)) {
     const path = decodeURIComponent(p.image_url.split(marker)[1]);
-    await supabaseClient.storage.from(IMAGE_BUCKET).remove([path]);
+
+    await supabaseClient
+      .storage
+      .from(IMAGE_BUCKET)
+      .remove([path]);
   }
 
   const r = await supabaseClient
@@ -260,11 +256,7 @@ async function save() {
       if (!priceEl) continue;
 
       const priceText = priceEl.value.trim();
-
-      const price =
-        priceText === ""
-          ? null
-          : Number(priceText);
+      const price = priceText === "" ? null : Number(priceText);
 
       if (priceText !== "" && !Number.isFinite(price)) {
         status(`Неверная цена у товара «${p.name}».`,"error");
@@ -347,88 +339,640 @@ async function saveSettings() {
   status("Настройки сохранены.","success");
 }
 
+
+/* =========================================================
+   НАШИ РАБОТЫ — 22 ФОТО
+   ========================================================= */
+
+function ensureGalleryUI() {
+  let card = $("galleryCard");
+
+  if (!card) {
+    const adminCard = $("adminCard");
+    if (!adminCard) return false;
+
+    card = document.createElement("div");
+    card.id = "galleryCard";
+    card.className = "admin-card";
+
+    card.innerHTML = `
+      <h2>Наши работы</h2>
+
+      <div class="small" style="margin-bottom:14px">
+        22 слота. Загружайте, заменяйте или удаляйте фотографии.
+      </div>
+
+      <div id="galleryStatus" class="status">
+        Загрузка галереи…
+      </div>
+
+      <div id="galleryGrid"
+        style="
+          display:grid;
+          grid-template-columns:repeat(4,minmax(0,1fr));
+          gap:16px;
+        ">
+      </div>
+
+      <style>
+        #galleryGrid .gallery-admin-card{
+          border:1px solid #eadfd4;
+          border-radius:14px;
+          padding:10px;
+          background:#fffaf4;
+        }
+
+        #galleryGrid .gallery-admin-preview{
+          width:100%;
+          aspect-ratio:4/3;
+          border-radius:10px;
+          overflow:hidden;
+          background:#f4eee8;
+          display:grid;
+          place-items:center;
+          color:#8b7669;
+          text-align:center;
+          margin-bottom:9px;
+        }
+
+        #galleryGrid .gallery-admin-preview img{
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          display:block;
+        }
+
+        #galleryGrid .gallery-admin-actions{
+          display:flex;
+          gap:6px;
+          flex-wrap:wrap;
+        }
+
+        #galleryGrid .gallery-admin-actions button,
+        #galleryGrid .gallery-admin-actions label{
+          font-size:11px;
+          padding:7px 8px;
+          border:1px solid #dfcbb8;
+          border-radius:8px;
+          background:#fff;
+          color:#76563d;
+          cursor:pointer;
+        }
+
+        @media(max-width:900px){
+          #galleryGrid{
+            grid-template-columns:repeat(3,minmax(0,1fr))!important;
+          }
+        }
+
+        @media(max-width:600px){
+          #galleryGrid{
+            grid-template-columns:repeat(2,minmax(0,1fr))!important;
+          }
+        }
+      </style>
+    `;
+
+    adminCard.appendChild(card);
+  }
+
+  return true;
+}
+
+
+async function loadGallery() {
+  if (!ensureGalleryUI()) return;
+
+  const r = await supabaseClient
+    .from("gallery_images")
+    .select("*")
+    .order("sort_order", {ascending:true});
+
+  if (r.error) {
+    galleryStatus(r.error.message, "error");
+    return;
+  }
+
+  galleryData = r.data || [];
+
+  /*
+    Если по какой-то причине слоты не вернулись,
+    показываем 22 заглушки.
+  */
+
+  if (galleryData.length < 22) {
+    const existing = new Map(
+      galleryData.map(x => [x.sort_order, x])
+    );
+
+    galleryData = Array.from({length:22}, (_,i) => {
+      const order = i + 1;
+
+      return existing.get(order) || {
+        id:`gallery-${String(order).padStart(2,"0")}`,
+        sort_order:order,
+        image_url:null,
+        is_active:true
+      };
+    });
+  }
+
+  renderGallery();
+
+  galleryStatus("Готово.", "success");
+}
+
+
+function renderGallery() {
+  const grid = $("galleryGrid");
+
+  if (!grid) return;
+
+  grid.innerHTML = galleryData.map((slot, i) => `
+    <div class="gallery-admin-card">
+
+      <div
+        class="small"
+        style="font-weight:700;margin-bottom:7px"
+      >
+        Фото №${String(slot.sort_order).padStart(2,"0")}
+      </div>
+
+      <div class="gallery-admin-preview">
+
+        ${
+          slot.image_url
+
+            ? `<img
+                src="${esc(slot.image_url)}"
+                alt="Работа ${slot.sort_order}"
+              >`
+
+            : `<div>
+                📷
+                <br>
+                <small>Нет фото</small>
+              </div>`
+        }
+
+      </div>
+
+      <div class="gallery-admin-actions">
+
+        <label>
+
+          📷 ${slot.image_url ? "Заменить" : "Загрузить"}
+
+          <input
+            type="file"
+            data-gallery-upload="${i}"
+            accept="image/*"
+            style="display:none"
+          >
+
+        </label>
+
+        ${
+          slot.image_url
+
+            ? `<button
+                type="button"
+                data-gallery-remove="${i}"
+              >
+                🗑 Удалить
+              </button>`
+
+            : ""
+        }
+
+      </div>
+
+    </div>
+  `).join("");
+
+
+  document
+    .querySelectorAll("[data-gallery-upload]")
+    .forEach(input => {
+
+      input.onchange = () => {
+
+        uploadGalleryImage(
+          Number(input.dataset.galleryUpload),
+          input.files[0]
+        );
+
+      };
+
+    });
+
+
+  document
+    .querySelectorAll("[data-gallery-remove]")
+    .forEach(button => {
+
+      button.onclick = () => {
+
+        removeGalleryImage(
+          Number(button.dataset.galleryRemove)
+        );
+
+      };
+
+    });
+}
+
+
+async function uploadGalleryImage(index, file) {
+
+  if (!file) return;
+
+  if (file.size > 10 * 1024 * 1024) {
+
+    galleryStatus(
+      "Максимальный размер фотографии — 10 МБ.",
+      "error"
+    );
+
+    return;
+  }
+
+  const slot = galleryData[index];
+
+  if (!slot) return;
+
+  galleryStatus(
+    `Загружаю фотографию №${String(slot.sort_order).padStart(2,"0")}…`
+  );
+
+
+  const ext = (
+    file.name.split(".").pop() || "jpg"
+  )
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g,"") || "jpg";
+
+
+  const path =
+    `gallery/${slot.id}-${Date.now()}.${ext}`;
+
+
+  const upload = await supabaseClient
+    .storage
+    .from(GALLERY_BUCKET)
+    .upload(
+      path,
+      file,
+      {
+        upsert:false,
+        contentType:file.type,
+        cacheControl:"3600"
+      }
+    );
+
+
+  if (upload.error) {
+
+    galleryStatus(
+      upload.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+  const url = supabaseClient
+    .storage
+    .from(GALLERY_BUCKET)
+    .getPublicUrl(path)
+    .data
+    .publicUrl;
+
+
+  const oldUrl = slot.image_url;
+
+
+  const update = await supabaseClient
+    .from("gallery_images")
+    .update({
+      image_url:url,
+      updated_at:new Date().toISOString()
+    })
+    .eq("id",slot.id);
+
+
+  if (update.error) {
+
+    await supabaseClient
+      .storage
+      .from(GALLERY_BUCKET)
+      .remove([path]);
+
+    galleryStatus(
+      update.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+  /*
+    После успешной загрузки удаляем старое фото,
+    если оно существовало.
+  */
+
+  if (
+    oldUrl &&
+    oldUrl.includes(
+      `/storage/v1/object/public/${GALLERY_BUCKET}/`
+    )
+  ) {
+
+    const marker =
+      `/storage/v1/object/public/${GALLERY_BUCKET}/`;
+
+    const oldPath =
+      decodeURIComponent(
+        oldUrl.split(marker)[1]
+      );
+
+
+    await supabaseClient
+      .storage
+      .from(GALLERY_BUCKET)
+      .remove([oldPath]);
+  }
+
+
+  galleryData[index].image_url = url;
+
+  renderGallery();
+
+
+  galleryStatus(
+    `Фото №${String(slot.sort_order).padStart(2,"0")} сохранено.`,
+    "success"
+  );
+}
+
+
+async function removeGalleryImage(index) {
+
+  const slot = galleryData[index];
+
+  if (!slot || !slot.image_url) return;
+
+
+  if (
+    !confirm(
+      `Удалить фотографию №${String(slot.sort_order).padStart(2,"0")}?`
+    )
+  ) {
+    return;
+  }
+
+
+  galleryStatus("Удаляю фотографию…");
+
+
+  const marker =
+    `/storage/v1/object/public/${GALLERY_BUCKET}/`;
+
+
+  if (slot.image_url.includes(marker)) {
+
+    const path =
+      decodeURIComponent(
+        slot.image_url.split(marker)[1]
+      );
+
+
+    await supabaseClient
+      .storage
+      .from(GALLERY_BUCKET)
+      .remove([path]);
+  }
+
+
+  const r = await supabaseClient
+    .from("gallery_images")
+    .update({
+      image_url:null,
+      updated_at:new Date().toISOString()
+    })
+    .eq("id",slot.id);
+
+
+  if (r.error) {
+
+    galleryStatus(
+      r.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+  galleryData[index].image_url = null;
+
+  renderGallery();
+
+  galleryStatus(
+    "Фотография удалена.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   ВХОД / ВЫХОД
+   ========================================================= */
+
 async function login() {
+
   const email = $("email").value.trim();
   const password = $("password").value;
 
+
   if (!email || !password) {
-    status("Введите email и пароль.","error");
+
+    status(
+      "Введите email и пароль.",
+      "error"
+    );
+
     return;
   }
+
 
   status("Выполняем вход…");
 
-  const r = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+
+  const r =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
 
   if (r.error) {
-    status(r.error.message,"error");
+
+    status(
+      r.error.message,
+      "error"
+    );
+
     return;
   }
+
 
   await boot();
 }
 
+
 async function logout() {
+
   await supabaseClient.auth.signOut();
+
   location.reload();
 }
 
+
 async function boot() {
+
   show("loginCard",false);
   show("adminCard",false);
   show("configWarning",false);
 
-  const r = await supabaseClient.auth.getSession();
+
+  const r =
+    await supabaseClient.auth.getSession();
+
 
   if (r.error) {
+
     show("loginCard",true);
-    status(r.error.message,"error");
+
+    status(
+      r.error.message,
+      "error"
+    );
+
     return;
   }
+
 
   const session = r.data.session;
 
+
   if (!session) {
+
     show("loginCard",true);
+
     return;
   }
 
-  if ((session.user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+
+  if (
+    (session.user.email || "").toLowerCase()
+    !==
+    ADMIN_EMAIL.toLowerCase()
+  ) {
+
     await logout();
+
     return;
   }
 
-  $("adminEmail").textContent = session.user.email;
+
+  if ($("adminEmail")) {
+
+    $("adminEmail").textContent =
+      session.user.email;
+  }
+
+
   show("adminCard",true);
 
+
   try {
+
     await loadData();
+
     await loadSettings();
+
     await loadGallery();
 
+
     if (!data.length) {
-      status("Таблица пуста. Нажми «Загрузить исходный каталог».");
+
+      status(
+        "Таблица пуста. Нажми «Загрузить исходный каталог»."
+      );
     }
 
   } catch (e) {
-    status(e.message || "Ошибка загрузки.","error");
+
+    console.error(e);
+
+    status(
+      e.message || "Ошибка загрузки.",
+      "error"
+    );
   }
 }
 
-document.addEventListener("DOMContentLoaded",() => {
-  $("login").onclick = login;
 
-  $("password").addEventListener("keydown",e => {
-    if (e.key === "Enter") login();
-  });
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
 
-  $("logout").onclick = logout;
-  $("seed").onclick = seed;
-  $("save").onclick = save;
-  $("saveSettings").onclick = saveSettings;
+    if ($("login")) {
+      $("login").onclick = login;
+    }
 
-  boot();
-});
+
+    if ($("password")) {
+
+      $("password")
+        .addEventListener(
+          "keydown",
+          e => {
+
+            if (e.key === "Enter") {
+              login();
+            }
+
+          }
+        );
+
+    }
+
+
+    if ($("logout")) {
+      $("logout").onclick = logout;
+    }
+
+
+    if ($("seed")) {
+      $("seed").onclick = seed;
+    }
+
+
+    if ($("save")) {
+      $("save").onclick = save;
+    }
+
+
+    if ($("saveSettings")) {
+      $("saveSettings").onclick = saveSettings;
+    }
+
+
+    boot();
+
+  }
+);
