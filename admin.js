@@ -1,9 +1,12 @@
 const supabaseClient = window.supabaseClient;
 
 // Tut Dessert — admin panel
+
 const ADMIN_EMAIL = "makhuseev0103@gmail.com";
+
 const IMAGE_BUCKET = "product-images";
 const GALLERY_BUCKET = "gallery-images";
+const GALLERY_SLOTS = 22;
 
 const DEFAULTS = [
   {id:"bento",name:"Бенто-торт",category:"Торты",price:4000,price_label:"",unit:"₸/шт.",emoji:"🎂",desc:"Небольшой торт для маленького, но важного повода."},
@@ -55,6 +58,7 @@ function show(id, value = true) {
 
 function status(message, type = "info") {
   const e = $("status");
+
   if (e) {
     e.textContent = message;
     e.className = "status " + type;
@@ -63,13 +67,17 @@ function status(message, type = "info") {
 
 function galleryStatus(message, type = "info") {
   const e = $("galleryStatus");
+
   if (e) {
     e.textContent = message;
     e.className = "status " + type;
-  } else {
-    status(message, type);
   }
 }
+
+
+/* =========================================================
+   ТОВАРЫ
+   ========================================================= */
 
 async function loadData() {
   const r = await supabaseClient
@@ -80,38 +88,75 @@ async function loadData() {
   if (r.error) throw r.error;
 
   data = r.data || [];
+
   render();
 }
 
 function render() {
   const rows = $("rows");
+
   if (!rows) return;
 
   rows.innerHTML = data.map((p, i) => `
     <div class="admin-row">
+
       <div class="product-image-cell">
+
         <div class="product-preview">
-          ${p.image_url
-            ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">`
-            : `<span>${esc(p.emoji || "🍰")}</span>`}
+          ${
+            p.image_url
+              ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">`
+              : `<span>${esc(p.emoji || "🍰")}</span>`
+          }
         </div>
+
         <label class="upload-btn">
           📷 Загрузить
-          <input type="file" data-image="${i}" accept="image/*">
+          <input
+            type="file"
+            data-image="${i}"
+            accept="image/*"
+          >
         </label>
-        ${p.image_url
-          ? `<button type="button" class="remove-image" data-remove="${i}">Удалить</button>`
-          : ""}
+
+        ${
+          p.image_url
+            ? `<button type="button" class="remove-image" data-remove="${i}">Удалить</button>`
+            : ""
+        }
+
       </div>
+
       <div class="small">${esc(p.id)}</div>
-      <input data-name="${i}" value="${esc(p.name)}">
+
+      <input
+        data-name="${i}"
+        value="${esc(p.name)}"
+      >
+
       <div>${esc(p.category)}</div>
-      <input data-price="${i}" value="${p.price == null ? "" : p.price}" placeholder="6000">
-      <input data-label="${i}" value="${esc(p.price_label || "")}" placeholder="2800 / 4000">
+
+      <input
+        data-price="${i}"
+        value="${p.price == null ? "" : p.price}"
+        placeholder="6000"
+      >
+
+      <input
+        data-label="${i}"
+        value="${esc(p.price_label || "")}"
+        placeholder="2800 / 4000"
+      >
+
       <label class="switch">
-        <input type="checkbox" data-active="${i}" ${p.is_active !== false ? "checked" : ""}>
+        <input
+          type="checkbox"
+          data-active="${i}"
+          ${p.is_active !== false ? "checked" : ""}
+        >
         Активен
       </label>
+
     </div>
   `).join("");
 
@@ -124,7 +169,9 @@ function render() {
   });
 }
 
+
 async function uploadImage(i, file) {
+
   if (!file) return;
 
   if (file.size > 8 * 1024 * 1024) {
@@ -133,6 +180,7 @@ async function uploadImage(i, file) {
   }
 
   const p = data[i];
+
   const ext = (file.name.split(".").pop() || "jpg")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "") || "jpg";
@@ -160,7 +208,9 @@ async function uploadImage(i, file) {
 
   const r = await supabaseClient
     .from("products")
-    .update({image_url:url})
+    .update({
+      image_url:url
+    })
     .eq("id",p.id);
 
   if (r.error) {
@@ -169,11 +219,15 @@ async function uploadImage(i, file) {
   }
 
   data[i].image_url = url;
+
   render();
+
   status("Фото сохранено.", "success");
 }
 
+
 async function removeImage(i) {
+
   const p = data[i];
 
   if (!confirm("Удалить фото?")) return;
@@ -181,17 +235,23 @@ async function removeImage(i) {
   const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
 
   if (p.image_url?.includes(marker)) {
-    const path = decodeURIComponent(p.image_url.split(marker)[1]);
 
-    await supabaseClient
-      .storage
+    const path = decodeURIComponent(
+      p.image_url
+        .split(marker)[1]
+        .split("?")[0]
+    );
+
+    await supabaseClient.storage
       .from(IMAGE_BUCKET)
       .remove([path]);
   }
 
   const r = await supabaseClient
     .from("products")
-    .update({image_url:null})
+    .update({
+      image_url:null
+    })
     .eq("id",p.id);
 
   if (r.error) {
@@ -200,15 +260,28 @@ async function removeImage(i) {
   }
 
   data[i].image_url = null;
+
   render();
+
   status("Фото удалено.", "success");
 }
 
+
+/* =========================================================
+   ЗАГРУЗКА ИСХОДНОГО КАТАЛОГА
+   ========================================================= */
+
 async function seed() {
-  if (!confirm("Загрузить исходный каталог из 27 товаров?")) return;
+
+  if (!confirm("Загрузить исходный каталог из 27 товаров?")) {
+    return;
+  }
 
   const old = {};
-  data.forEach(p => old[p.id] = p.image_url);
+
+  data.forEach(p => {
+    old[p.id] = p.image_url;
+  });
 
   const payload = DEFAULTS.map(p => ({
     id:p.id,
@@ -233,11 +306,19 @@ async function seed() {
   }
 
   await loadData();
+
   status("Каталог загружен.","success");
 }
 
+
+/* =========================================================
+   СОХРАНЕНИЕ ТОВАРОВ
+   ========================================================= */
+
 async function save() {
+
   try {
+
     if (!data.length) {
       status("Каталог пуст.","error");
       return;
@@ -246,28 +327,59 @@ async function save() {
     status("Сохраняем изменения…");
 
     for (let i = 0; i < data.length; i++) {
+
       const p = data[i];
 
-      const nameEl = document.querySelector(`[data-name="${i}"]`);
-      const priceEl = document.querySelector(`[data-price="${i}"]`);
-      const labelEl = document.querySelector(`[data-label="${i}"]`);
-      const activeEl = document.querySelector(`[data-active="${i}"]`);
+      const nameEl =
+        document.querySelector(`[data-name="${i}"]`);
+
+      const priceEl =
+        document.querySelector(`[data-price="${i}"]`);
+
+      const labelEl =
+        document.querySelector(`[data-label="${i}"]`);
+
+      const activeEl =
+        document.querySelector(`[data-active="${i}"]`);
 
       if (!priceEl) continue;
 
       const priceText = priceEl.value.trim();
-      const price = priceText === "" ? null : Number(priceText);
 
-      if (priceText !== "" && !Number.isFinite(price)) {
-        status(`Неверная цена у товара «${p.name}».`,"error");
+      const price =
+        priceText === ""
+          ? null
+          : Number(priceText);
+
+      if (
+        priceText !== "" &&
+        !Number.isFinite(price)
+      ) {
+        status(
+          `Неверная цена у товара «${p.name}».`,
+          "error"
+        );
         return;
       }
 
       const update = {
-        name: nameEl ? nameEl.value.trim() : p.name,
-        price: price,
-        price_label: labelEl ? labelEl.value.trim() : (p.price_label || ""),
-        is_active: activeEl ? activeEl.checked : true
+
+        name:
+          nameEl
+            ? nameEl.value.trim()
+            : p.name,
+
+        price:price,
+
+        price_label:
+          labelEl
+            ? labelEl.value.trim()
+            : (p.price_label || ""),
+
+        is_active:
+          activeEl
+            ? activeEl.checked
+            : true
       };
 
       const r = await supabaseClient
@@ -276,22 +388,43 @@ async function save() {
         .eq("id",p.id);
 
       if (r.error) {
-        status(`Ошибка у товара «${p.name}»: ${r.error.message}`,"error");
+
+        status(
+          `Ошибка у товара «${p.name}»: ${r.error.message}`,
+          "error"
+        );
+
         console.error(r.error);
+
         return;
       }
     }
 
     await loadData();
-    status("Изменения сохранены.","success");
+
+    status(
+      "Изменения сохранены.",
+      "success"
+    );
 
   } catch (e) {
+
     console.error(e);
-    status("Ошибка сохранения: " + (e.message || e),"error");
+
+    status(
+      "Ошибка сохранения: " + (e.message || e),
+      "error"
+    );
   }
 }
 
+
+/* =========================================================
+   НАСТРОЙКИ САЙТА
+   ========================================================= */
+
 async function loadSettings() {
+
   const r = await supabaseClient
     .from("site_settings")
     .select("*")
@@ -311,32 +444,64 @@ async function loadSettings() {
     "logo_url",
     "instagram_url"
   ].forEach(k => {
-    if ($(k)) $(k).value = s[k] || "";
+
+    if ($(k)) {
+      $(k).value = s[k] || "";
+    }
+
   });
 }
 
+
 async function saveSettings() {
+
   const payload = {
+
     id:1,
-    address:$("address").value.trim(),
-    phone:$("phone").value.trim(),
-    whatsapp:$("whatsapp").value.replace(/\D/g,""),
-    hours:$("hours").value.trim(),
-    map_url:$("map_url").value.trim(),
-    logo_url:$("logo_url").value.trim(),
-    instagram_url:$("instagram_url").value.trim()
+
+    address:
+      $("address").value.trim(),
+
+    phone:
+      $("phone").value.trim(),
+
+    whatsapp:
+      $("whatsapp").value.replace(/\D/g,""),
+
+    hours:
+      $("hours").value.trim(),
+
+    map_url:
+      $("map_url").value.trim(),
+
+    logo_url:
+      $("logo_url").value.trim(),
+
+    instagram_url:
+      $("instagram_url").value.trim()
   };
 
   const r = await supabaseClient
     .from("site_settings")
-    .upsert(payload,{onConflict:"id"});
+    .upsert(
+      payload,
+      {onConflict:"id"}
+    );
 
   if (r.error) {
-    status(r.error.message,"error");
+
+    status(
+      r.error.message,
+      "error"
+    );
+
     return;
   }
 
-  status("Настройки сохранены.","success");
+  status(
+    "Настройки сохранены.",
+    "success"
+  );
 }
 
 
@@ -344,104 +509,7 @@ async function saveSettings() {
    НАШИ РАБОТЫ — 22 ФОТО
    ========================================================= */
 
-function ensureGalleryUI() {
-  let card = $("galleryCard");
-
-  if (!card) {
-    const adminCard = $("adminCard");
-    if (!adminCard) return false;
-
-    card = document.createElement("div");
-    card.id = "galleryCard";
-    card.className = "admin-card";
-
-    card.innerHTML = `
-      <h2>Наши работы</h2>
-
-      <div class="small" style="margin-bottom:14px">
-        22 слота. Загружайте, заменяйте или удаляйте фотографии.
-      </div>
-
-      <div id="galleryStatus" class="status">
-        Загрузка галереи…
-      </div>
-
-      <div id="galleryGrid"
-        style="
-          display:grid;
-          grid-template-columns:repeat(4,minmax(0,1fr));
-          gap:16px;
-        ">
-      </div>
-
-      <style>
-        #galleryGrid .gallery-admin-card{
-          border:1px solid #eadfd4;
-          border-radius:14px;
-          padding:10px;
-          background:#fffaf4;
-        }
-
-        #galleryGrid .gallery-admin-preview{
-          width:100%;
-          aspect-ratio:4/3;
-          border-radius:10px;
-          overflow:hidden;
-          background:#f4eee8;
-          display:grid;
-          place-items:center;
-          color:#8b7669;
-          text-align:center;
-          margin-bottom:9px;
-        }
-
-        #galleryGrid .gallery-admin-preview img{
-          width:100%;
-          height:100%;
-          object-fit:cover;
-          display:block;
-        }
-
-        #galleryGrid .gallery-admin-actions{
-          display:flex;
-          gap:6px;
-          flex-wrap:wrap;
-        }
-
-        #galleryGrid .gallery-admin-actions button,
-        #galleryGrid .gallery-admin-actions label{
-          font-size:11px;
-          padding:7px 8px;
-          border:1px solid #dfcbb8;
-          border-radius:8px;
-          background:#fff;
-          color:#76563d;
-          cursor:pointer;
-        }
-
-        @media(max-width:900px){
-          #galleryGrid{
-            grid-template-columns:repeat(3,minmax(0,1fr))!important;
-          }
-        }
-
-        @media(max-width:600px){
-          #galleryGrid{
-            grid-template-columns:repeat(2,minmax(0,1fr))!important;
-          }
-        }
-      </style>
-    `;
-
-    adminCard.appendChild(card);
-  }
-
-  return true;
-}
-
-
 async function loadGallery() {
-  if (!ensureGalleryUI()) return;
 
   const r = await supabaseClient
     .from("gallery_images")
@@ -449,106 +517,111 @@ async function loadGallery() {
     .order("sort_order", {ascending:true});
 
   if (r.error) {
-    galleryStatus(r.error.message, "error");
-    return;
+    throw r.error;
   }
 
-  galleryData = r.data || [];
+  const rows = r.data || [];
 
-  /*
-    Если по какой-то причине слоты не вернулись,
-    показываем 22 заглушки.
-  */
+  galleryData = [];
 
-  if (galleryData.length < 22) {
-    const existing = new Map(
-      galleryData.map(x => [x.sort_order, x])
+  for (let i = 1; i <= GALLERY_SLOTS; i++) {
+
+    const existing = rows.find(
+      x => Number(x.sort_order) === i
     );
 
-    galleryData = Array.from({length:22}, (_,i) => {
-      const order = i + 1;
-
-      return existing.get(order) || {
-        id:`gallery-${String(order).padStart(2,"0")}`,
-        sort_order:order,
+    galleryData.push(
+      existing || {
+        id:`gallery-${String(i).padStart(2,"0")}`,
+        sort_order:i,
         image_url:null,
         is_active:true
-      };
-    });
+      }
+    );
   }
 
   renderGallery();
-
-  galleryStatus("Готово.", "success");
 }
 
 
 function renderGallery() {
+
   const grid = $("galleryGrid");
 
   if (!grid) return;
 
-  grid.innerHTML = galleryData.map((slot, i) => `
-    <div class="gallery-admin-card">
+  grid.innerHTML = galleryData.map((item, index) => {
 
-      <div
-        class="small"
-        style="font-weight:700;margin-bottom:7px"
-      >
-        Фото №${String(slot.sort_order).padStart(2,"0")}
+    const number =
+      String(item.sort_order).padStart(2,"0");
+
+    const image = item.image_url;
+
+    return `
+      <div class="gallery-admin-card">
+
+        <div class="gallery-admin-preview">
+
+          ${
+            image
+              ? `
+                <img
+                  src="${esc(image)}"
+                  alt="Работа ${number}"
+                >
+              `
+              : `
+                <span>
+                  Фото ${number}
+                </span>
+              `
+          }
+
+        </div>
+
+        <div class="small" style="margin-bottom:8px;">
+          Работа №${number}
+        </div>
+
+        <div class="gallery-admin-actions">
+
+          <label class="upload-btn">
+
+            📷 ${
+              image
+                ? "Заменить"
+                : "Загрузить"
+            }
+
+            <input
+              type="file"
+              accept="image/*"
+              data-gallery-upload="${index}"
+              style="display:none"
+            >
+
+          </label>
+
+          ${
+            image
+              ? `
+                <button
+                  type="button"
+                  class="remove-image"
+                  data-gallery-remove="${index}"
+                >
+                  Удалить
+                </button>
+              `
+              : ""
+          }
+
+        </div>
+
       </div>
+    `;
 
-      <div class="gallery-admin-preview">
-
-        ${
-          slot.image_url
-
-            ? `<img
-                src="${esc(slot.image_url)}"
-                alt="Работа ${slot.sort_order}"
-              >`
-
-            : `<div>
-                📷
-                <br>
-                <small>Нет фото</small>
-              </div>`
-        }
-
-      </div>
-
-      <div class="gallery-admin-actions">
-
-        <label>
-
-          📷 ${slot.image_url ? "Заменить" : "Загрузить"}
-
-          <input
-            type="file"
-            data-gallery-upload="${i}"
-            accept="image/*"
-            style="display:none"
-          >
-
-        </label>
-
-        ${
-          slot.image_url
-
-            ? `<button
-                type="button"
-                data-gallery-remove="${i}"
-              >
-                🗑 Удалить
-              </button>`
-
-            : ""
-        }
-
-      </div>
-
-    </div>
-  `).join("");
+  }).join("");
 
 
   document
@@ -557,11 +630,13 @@ function renderGallery() {
 
       input.onchange = () => {
 
-        uploadGalleryImage(
-          Number(input.dataset.galleryUpload),
-          input.files[0]
-        );
+        const index =
+          Number(input.dataset.galleryUpload);
 
+        const file =
+          input.files && input.files[0];
+
+        uploadGalleryImage(index,file);
       };
 
     });
@@ -573,229 +648,329 @@ function renderGallery() {
 
       button.onclick = () => {
 
-        removeGalleryImage(
-          Number(button.dataset.galleryRemove)
-        );
+        const index =
+          Number(button.dataset.galleryRemove);
 
+        removeGalleryImage(index);
       };
 
     });
 }
 
 
-async function uploadGalleryImage(index, file) {
+/* =========================================================
+   ЗАГРУЗКА ФОТО В НАШИ РАБОТЫ
+   ========================================================= */
+
+async function uploadGalleryImage(index,file) {
 
   if (!file) return;
 
   if (file.size > 10 * 1024 * 1024) {
 
     galleryStatus(
-      "Максимальный размер фотографии — 10 МБ.",
+      "Максимальный размер фото — 10 МБ.",
       "error"
     );
 
     return;
   }
 
-  const slot = galleryData[index];
+  const item = galleryData[index];
 
-  if (!slot) return;
+  if (!item) return;
 
   galleryStatus(
-    `Загружаю фотографию №${String(slot.sort_order).padStart(2,"0")}…`
+    `Загружаем фото №${item.sort_order}…`
   );
 
+  try {
 
-  const ext = (
-    file.name.split(".").pop() || "jpg"
-  )
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g,"") || "jpg";
+    const oldUrl = item.image_url;
 
-
-  const path =
-    `gallery/${slot.id}-${Date.now()}.${ext}`;
-
-
-  const upload = await supabaseClient
-    .storage
-    .from(GALLERY_BUCKET)
-    .upload(
-      path,
-      file,
-      {
-        upsert:false,
-        contentType:file.type,
-        cacheControl:"3600"
-      }
-    );
+    const ext =
+      (
+        file.name
+          .split(".")
+          .pop() || "jpg"
+      )
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g,"") || "jpg";
 
 
-  if (upload.error) {
+    /*
+      Для каждой фотографии создаём уникальный файл.
+      Поэтому новое фото точно не попадёт в кэш старого.
+    */
 
-    galleryStatus(
-      upload.error.message,
-      "error"
-    );
-
-    return;
-  }
-
-
-  const url = supabaseClient
-    .storage
-    .from(GALLERY_BUCKET)
-    .getPublicUrl(path)
-    .data
-    .publicUrl;
-
-
-  const oldUrl = slot.image_url;
-
-
-  const update = await supabaseClient
-    .from("gallery_images")
-    .update({
-      image_url:url,
-      updated_at:new Date().toISOString()
-    })
-    .eq("id",slot.id);
-
-
-  if (update.error) {
-
-    await supabaseClient
-      .storage
-      .from(GALLERY_BUCKET)
-      .remove([path]);
-
-    galleryStatus(
-      update.error.message,
-      "error"
-    );
-
-    return;
-  }
-
-
-  /*
-    После успешной загрузки удаляем старое фото,
-    если оно существовало.
-  */
-
-  if (
-    oldUrl &&
-    oldUrl.includes(
-      `/storage/v1/object/public/${GALLERY_BUCKET}/`
-    )
-  ) {
-
-    const marker =
-      `/storage/v1/object/public/${GALLERY_BUCKET}/`;
-
-    const oldPath =
-      decodeURIComponent(
-        oldUrl.split(marker)[1]
-      );
-
-
-    await supabaseClient
-      .storage
-      .from(GALLERY_BUCKET)
-      .remove([oldPath]);
-  }
-
-
-  galleryData[index].image_url = url;
-
-  renderGallery();
-
-
-  galleryStatus(
-    `Фото №${String(slot.sort_order).padStart(2,"0")} сохранено.`,
-    "success"
-  );
-}
-
-
-async function removeGalleryImage(index) {
-
-  const slot = galleryData[index];
-
-  if (!slot || !slot.image_url) return;
-
-
-  if (
-    !confirm(
-      `Удалить фотографию №${String(slot.sort_order).padStart(2,"0")}?`
-    )
-  ) {
-    return;
-  }
-
-
-  galleryStatus("Удаляю фотографию…");
-
-
-  const marker =
-    `/storage/v1/object/public/${GALLERY_BUCKET}/`;
-
-
-  if (slot.image_url.includes(marker)) {
+    const fileName =
+      `gallery-${String(item.sort_order).padStart(2,"0")}-${Date.now()}.${ext}`;
 
     const path =
-      decodeURIComponent(
-        slot.image_url.split(marker)[1]
-      );
+      `gallery/${fileName}`;
 
 
-    await supabaseClient
-      .storage
-      .from(GALLERY_BUCKET)
-      .remove([path]);
-  }
+    const upload =
+      await supabaseClient.storage
+        .from(GALLERY_BUCKET)
+        .upload(
+          path,
+          file,
+          {
+            upsert:true,
+            contentType:file.type,
+            cacheControl:"31536000"
+          }
+        );
 
 
-  const r = await supabaseClient
-    .from("gallery_images")
-    .update({
-      image_url:null,
-      updated_at:new Date().toISOString()
-    })
-    .eq("id",slot.id);
+    if (upload.error) {
+      throw upload.error;
+    }
 
 
-  if (r.error) {
+    const publicUrl =
+      supabaseClient.storage
+        .from(GALLERY_BUCKET)
+        .getPublicUrl(path)
+        .data
+        .publicUrl;
+
+
+    const update =
+      await supabaseClient
+        .from("gallery_images")
+        .update({
+          image_url:publicUrl,
+          is_active:true,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",item.id);
+
+
+    if (update.error) {
+      throw update.error;
+    }
+
+
+    /*
+      Если у слота уже было старое фото —
+      удаляем старый файл из Storage.
+    */
+
+    if (oldUrl) {
+
+      await deleteGalleryStorageFile(oldUrl);
+    }
+
+
+    item.image_url = publicUrl;
+
+    renderGallery();
 
     galleryStatus(
-      r.error.message,
-      "error"
+      `Фото №${item.sort_order} сохранено.`,
+      "success"
     );
 
-    return;
+  } catch (e) {
+
+    console.error(e);
+
+    galleryStatus(
+      "Ошибка загрузки: " +
+      (e.message || e),
+      "error"
+    );
   }
-
-
-  galleryData[index].image_url = null;
-
-  renderGallery();
-
-  galleryStatus(
-    "Фотография удалена.",
-    "success"
-  );
 }
 
 
 /* =========================================================
-   ВХОД / ВЫХОД
+   УДАЛЕНИЕ ФОТО ИЗ STORAGE
+   ========================================================= */
+
+async function deleteGalleryStorageFile(url) {
+
+  try {
+
+    const marker =
+      `/storage/v1/object/public/${GALLERY_BUCKET}/`;
+
+    if (!url || !url.includes(marker)) {
+      return;
+    }
+
+    let path =
+      url.split(marker)[1];
+
+    path =
+      decodeURIComponent(
+        path.split("?")[0]
+      );
+
+    if (!path) return;
+
+    const result =
+      await supabaseClient.storage
+        .from(GALLERY_BUCKET)
+        .remove([path]);
+
+    if (result.error) {
+      console.warn(
+        "Не удалось удалить старое фото:",
+        result.error
+      );
+    }
+
+  } catch (e) {
+
+    console.warn(
+      "Ошибка удаления файла:",
+      e
+    );
+  }
+}
+
+
+/* =========================================================
+   УДАЛЕНИЕ ФОТО ИЗ СЛОТА
+   ========================================================= */
+
+async function removeGalleryImage(index) {
+
+  const item =
+    galleryData[index];
+
+  if (!item || !item.image_url) {
+    return;
+  }
+
+  if (
+    !confirm(
+      `Удалить фотографию №${item.sort_order}?`
+    )
+  ) {
+    return;
+  }
+
+  galleryStatus(
+    `Удаляем фото №${item.sort_order}…`
+  );
+
+  try {
+
+    await deleteGalleryStorageFile(
+      item.image_url
+    );
+
+
+    const r =
+      await supabaseClient
+        .from("gallery_images")
+        .update({
+          image_url:null,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",item.id);
+
+
+    if (r.error) {
+      throw r.error;
+    }
+
+
+    item.image_url = null;
+
+    renderGallery();
+
+    galleryStatus(
+      `Фото №${item.sort_order} удалено.`,
+      "success"
+    );
+
+  } catch (e) {
+
+    console.error(e);
+
+    galleryStatus(
+      "Ошибка удаления: " +
+      (e.message || e),
+      "error"
+    );
+  }
+}
+
+
+/* =========================================================
+   АВТОМАТИЧЕСКОЕ СОЗДАНИЕ 22 СЛОТОВ
+   ========================================================= */
+
+async function ensureGallerySlots() {
+
+  try {
+
+    const rows = [];
+
+    for (
+      let i = 1;
+      i <= GALLERY_SLOTS;
+      i++
+    ) {
+
+      rows.push({
+        id:
+          `gallery-${String(i).padStart(2,"0")}`,
+
+        sort_order:i,
+
+        image_url:null,
+
+        is_active:true
+      });
+    }
+
+
+    const r =
+      await supabaseClient
+        .from("gallery_images")
+        .upsert(
+          rows,
+          {
+            onConflict:"id",
+            ignoreDuplicates:true
+          }
+        );
+
+
+    if (r.error) {
+      console.warn(
+        "Не удалось проверить слоты галереи:",
+        r.error
+      );
+    }
+
+  } catch (e) {
+
+    console.warn(
+      "Ошибка проверки слотов:",
+      e
+    );
+  }
+}
+
+
+/* =========================================================
+   АВТОРИЗАЦИЯ
    ========================================================= */
 
 async function login() {
 
-  const email = $("email").value.trim();
-  const password = $("password").value;
+  const email =
+    $("email").value.trim();
 
+  const password =
+    $("password").value;
 
   if (!email || !password) {
 
@@ -807,15 +982,16 @@ async function login() {
     return;
   }
 
-
-  status("Выполняем вход…");
-
+  status(
+    "Выполняем вход…"
+  );
 
   const r =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+    await supabaseClient.auth
+      .signInWithPassword({
+        email,
+        password
+      });
 
 
   if (r.error) {
@@ -827,7 +1003,6 @@ async function login() {
 
     return;
   }
-
 
   await boot();
 }
@@ -841,11 +1016,26 @@ async function logout() {
 }
 
 
+/* =========================================================
+   ЗАПУСК АДМИНКИ
+   ========================================================= */
+
 async function boot() {
 
-  show("loginCard",false);
-  show("adminCard",false);
-  show("configWarning",false);
+  show(
+    "loginCard",
+    false
+  );
+
+  show(
+    "adminCard",
+    false
+  );
+
+  show(
+    "configWarning",
+    false
+  );
 
 
   const r =
@@ -854,7 +1044,10 @@ async function boot() {
 
   if (r.error) {
 
-    show("loginCard",true);
+    show(
+      "loginCard",
+      true
+    );
 
     status(
       r.error.message,
@@ -865,20 +1058,25 @@ async function boot() {
   }
 
 
-  const session = r.data.session;
+  const session =
+    r.data.session;
 
 
   if (!session) {
 
-    show("loginCard",true);
+    show(
+      "loginCard",
+      true
+    );
 
     return;
   }
 
 
   if (
-    (session.user.email || "").toLowerCase()
-    !==
+    (session.user.email || "")
+      .toLowerCase()
+      !==
     ADMIN_EMAIL.toLowerCase()
   ) {
 
@@ -888,14 +1086,13 @@ async function boot() {
   }
 
 
-  if ($("adminEmail")) {
+  $("adminEmail").textContent =
+    session.user.email;
 
-    $("adminEmail").textContent =
-      session.user.email;
-  }
-
-
-  show("adminCard",true);
+  show(
+    "adminCard",
+    true
+  );
 
 
   try {
@@ -903,6 +1100,16 @@ async function boot() {
     await loadData();
 
     await loadSettings();
+
+    /*
+      Сначала проверяем 22 слота.
+    */
+
+    await ensureGallerySlots();
+
+    /*
+      Затем загружаем фотографии.
+    */
 
     await loadGallery();
 
@@ -919,57 +1126,53 @@ async function boot() {
     console.error(e);
 
     status(
-      e.message || "Ошибка загрузки.",
+      e.message ||
+      "Ошибка загрузки.",
       "error"
     );
   }
 }
 
 
+/* =========================================================
+   СОБЫТИЯ
+   ========================================================= */
+
 document.addEventListener(
   "DOMContentLoaded",
   () => {
 
-    if ($("login")) {
-      $("login").onclick = login;
-    }
+    $("login").onclick =
+      login;
 
 
-    if ($("password")) {
+    $("password")
+      .addEventListener(
+        "keydown",
+        e => {
 
-      $("password")
-        .addEventListener(
-          "keydown",
-          e => {
-
-            if (e.key === "Enter") {
-              login();
-            }
-
+          if (e.key === "Enter") {
+            login();
           }
-        );
 
-    }
-
-
-    if ($("logout")) {
-      $("logout").onclick = logout;
-    }
+        }
+      );
 
 
-    if ($("seed")) {
-      $("seed").onclick = seed;
-    }
+    $("logout").onclick =
+      logout;
 
 
-    if ($("save")) {
-      $("save").onclick = save;
-    }
+    $("seed").onclick =
+      seed;
 
 
-    if ($("saveSettings")) {
-      $("saveSettings").onclick = saveSettings;
-    }
+    $("save").onclick =
+      save;
+
+
+    $("saveSettings").onclick =
+      saveSettings;
 
 
     boot();
