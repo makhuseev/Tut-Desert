@@ -217,24 +217,64 @@ async function loadWorks(){
 }
 
 function renderWorks(){
-  const track=document.getElementById("worksTrack");
-  if(!track)return;
-  const active=WORKS_SOURCE.filter(x=>x.is_active!==false);
-  if(!active.length){track.innerHTML="";return;}
-  const items=[...active,...active];
-  track.innerHTML=items.map((w,i)=>{
-    const n=String(w.sort_order).padStart(2,"0");
-    return `<button class="work-card" type="button" data-work-index="${i%active.length}" aria-label="Открыть работу ${n}">
-      ${w.image_url
-        ? `<img src="${escHtml(w.image_url)}" alt="Работа ${n}" loading="lazy">`
-        : `<span class="work-placeholder"><span>№ ${n}</span><small>Tut Dessert</small></span>`}
-    </button>`;
+  const track = document.getElementById("worksTrack");
+  if(!track) return;
+
+  const active = WORKS_SOURCE.filter(x => x.is_active !== false);
+
+  if(!active.length){
+    track.innerHTML = "";
+    return;
+  }
+
+  const items = [...active, ...active];
+
+  track.innerHTML = items.map((w, i) => {
+    const n = String(w.sort_order).padStart(2, "0");
+
+    if(w.image_url){
+      return `
+        <button
+          class="work-card"
+          type="button"
+          data-work-index="${i % active.length}"
+          aria-label="Открыть работу ${n}"
+        >
+          <img
+            src="${escHtml(w.image_url)}"
+            alt="Работа ${n}"
+            loading="eager"
+            decoding="async"
+            draggable="false"
+          >
+        </button>
+      `;
+    }
+
+    return `
+      <button
+        class="work-card"
+        type="button"
+        data-work-index="${i % active.length}"
+        aria-label="Открыть работу ${n}"
+      >
+        <span class="work-placeholder">
+          <span>№ ${n}</span>
+          <small>Tut Dessert</small>
+        </span>
+      </button>
+    `;
   }).join("");
-  track.querySelectorAll(".work-card").forEach(card=>{
-    card.onclick=()=>openWorksModal(Number(card.dataset.workIndex),active);
+
+  track.querySelectorAll(".work-card").forEach(card => {
+    card.onclick = () => {
+      openWorksModal(
+        Number(card.dataset.workIndex),
+        active
+      );
+    };
   });
 }
-
 function openWorksModal(index,items){
   if(!items?.length)return;
   worksIndex=(index+items.length)%items.length;
