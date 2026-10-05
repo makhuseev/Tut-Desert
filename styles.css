@@ -168,3 +168,93 @@ body.modal-open{overflow:hidden}
 .works-close,.works-prev,.works-next{position:absolute;z-index:2;border:0;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);cursor:pointer}.works-close:hover,.works-prev:hover,.works-next:hover{background:rgba(255,255,255,.25)}
 .works-close{top:20px;right:22px;width:48px;height:48px;border-radius:50%;font-size:31px}.works-prev,.works-next{top:50%;transform:translateY(-50%);width:52px;height:72px;border-radius:18px;font-size:50px;font-family:Arial,sans-serif;font-weight:300}.works-prev{left:18px}.works-next{right:18px}.works-counter{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);color:#fff;font-size:12px;letter-spacing:1px;background:rgba(0,0,0,.25);padding:7px 12px;border-radius:20px}
 @media(max-width:620px){.works-section .section-heading,.works-hint{margin-left:5%;margin-right:5%}.works-track{gap:12px;animation-duration:32s}.work-card{flex-basis:78vw;height:88vw;max-height:480px;border-radius:20px}.works-modal{padding:55px 12px 35px}.works-modal-figure img{max-width:96vw;max-height:80vh}.works-prev,.works-next{width:42px;height:58px;font-size:40px;border-radius:14px}.works-prev{left:8px}.works-next{right:8px}}
+/* =========================================================
+   MOBILE GALLERY FIX — TUT DESSERT
+   ========================================================= */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 600px) {
+
+  /* Сама секция "Наши работы" */
+  #gallery,
+  .gallery-section,
+  .works-section {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  /* Контейнер галереи */
+  #galleryGrid,
+  .gallery-grid,
+  .gallery-track,
+  .gallery-slider,
+  .works-gallery {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Если галерея использует горизонтальный список */
+  .gallery-track,
+  .gallery-slider {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    display: flex;
+    gap: 16px;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: none;
+  }
+
+  .gallery-track::-webkit-scrollbar,
+  .gallery-slider::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ОДНО фото = ширина экрана */
+  .gallery-track > *,
+  .gallery-slider > * {
+    flex: 0 0 calc(100vw - 40px);
+    width: calc(100vw - 40px);
+    max-width: calc(100vw - 40px);
+
+    box-sizing: border-box;
+
+    scroll-snap-align: center;
+  }
+
+  /* Само изображение */
+  .gallery-track img,
+  .gallery-slider img,
+  .gallery-item img,
+  .gallery-card img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+
+    object-fit: cover;
+  }
+
+  /* Чтобы карточка не вылезала за экран */
+  .gallery-item,
+  .gallery-card {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+}
